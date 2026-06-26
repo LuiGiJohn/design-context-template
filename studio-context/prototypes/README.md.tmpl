@@ -1,0 +1,38 @@
+# Prototypes — the usability-validation gate
+
+This directory holds the **coded usability prototypes** for {{PROJECT_NAME}}. A prototype here is not
+a side quest — it is the **required usability-validation gate** of the pipeline: every flow bound for
+product + engineering is first usability-tested as an instrumented coded prototype (task success,
+time-on-task, SEQ, heatmaps) *before* it goes live. The Figma gates prove fidelity + system
+compliance; the prototype proves it works for users. A failed test routes back to `ux-designer` /
+`ui-designer`, not forward. See `AGENTS-HANDOFF.md` for where this sits in the define→build→validate→handoff
+pipeline, and the `data-analyst` agent / `/usability-report` for turning the analytics into evidence.
+
+## This is a POINTER, not the harness
+
+The instrumented React/Vite usability harness — cohort/persona separation, Microsoft Clarity heatmaps
++ session replay, PostHog time-on-task + funnels, a post-task SEQ, a generic `/results` heuristics
+dashboard, an access gate, and Vercel deploy config — is **bundled by the global `usability-prototype`
+skill**. Do not recreate it by hand here.
+
+## Build this project's prototype
+
+Invoke the `usability-prototype` skill (via the Skill tool, or delegate to the
+`usability-prototype-builder` agent for a hands-off first pass) with:
+
+- **name**: `{{PROTOTYPE_NAME}}`
+- **description**: `{{PROTOTYPE_DESC}}`
+- **analytics env vars** (set in `prototypes/{{PROTOTYPE_NAME}}/.env`):
+  - `VITE_POSTHOG_KEY` — PostHog project key (time-on-task, funnels, cohorts)
+  - `VITE_POSTHOG_HOST` — PostHog host (e.g. `https://us.i.posthog.com`)
+  - `VITE_CLARITY_ID` — Microsoft Clarity project id (heatmaps + replays)
+
+The skill scaffolds `prototypes/{{PROTOTYPE_NAME}}/`, recreates the project screens with the
+{{SYSTEM_NAME}} design system, and wires the instrumentation. It runs without keys too — task timings
+still log to the on-screen HUD.
+
+## Secrets stay out of git
+
+`prototypes/{{PROTOTYPE_NAME}}/.env` (Clarity / PostHog / access-gate keys) and `.vercel/` (the deploy
+link) are **gitignored** — never commit either. Copy `.env.example` → `.env` and fill in your own
+free Clarity + PostHog keys.

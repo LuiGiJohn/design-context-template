@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# Generated design-system inventory snapshot (regenerate via tools/<system>-inventory-snippet.js)
+*-actual.json

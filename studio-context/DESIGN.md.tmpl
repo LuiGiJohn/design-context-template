@@ -1,0 +1,161 @@
+# DESIGN.md — {{SYSTEM_NAME}} Design Principles & Benchmarks
+
+The single source of truth for *how {{SYSTEM_NAME}} is designed*. The `ds-steward` agent reads
+this FIRST when building tokens, components, or patterns; external systems are consulted
+only where this file points to them or is silent. When something genuinely novel comes
+up, it gets added here rather than improvised.
+
+> Status: starter scaffold. Sections marked `TODO` need your {{SYSTEM_NAME}}-specific values.
+> Keep this additive — never rebuild it from memory.
+>
+> **Shared ground truth.** The separate screen-creation context (`{{STUDIO_REPO}}`) also reads this
+> file — §2 (canonical components), §4 (accessibility / interaction conventions), and the
+> **screen-level** heuristics of §6. Edit it as one source both repos consume.
+
+---
+
+## 1. Token principles
+
+- **Three tiers, always.** Primitive → Semantic/alias → Component. Consumers and screens
+  bind to **semantic** tokens; raw primitives are never applied directly in a screen or a
+  component where a semantic exists.
+- **Alias chain:** Semantic → Tokens → Primitives. A semantic token's value is an alias,
+  not a literal, unless it is itself a primitive.
+- **Naming taxonomy:** `Category/Concept-Property` — e.g. `Surface/Brand-Primary`,
+  `Text/Error/Default`, `Border-Radius/*`, `Border-Width/*`, `Scale/*`. New tokens match
+  the existing pattern; no ad-hoc names. ({{TOKEN_PREFIXES}})
+- **Intent families are complete and symmetric.** Every intent — success, warning, error,
+  info, disabled — carries the full set: `Surface/* · Text/* · Border/* · Icon/*`.
+- **Scales, not magic numbers.** Spacing on a 4/8 base via `Scale/*`. Type on a modular
+  scale (text styles, not inline sizes). Radius and border-width tokenized. Any literal in
+  a component is a finding.
+- **Brand decisions enter only as tokens.** A color or type choice from `brand-designer` is
+  encoded as a semantic token here before any component uses it.
+
+`TODO:` list the canonical collections (Primitives / Tokens / Semantic) and the base unit.
+
+---
+
+## 2. Component & pattern conventions
+
+- **Atomic Design placement.** Classify each as atom / molecule / organism; compose from
+  smaller pieces, never duplicate.
+- **Orthogonal variant axes.** Axes are independent and single-responsibility. EXTEND an
+  existing component's axis before spawning a new component. Watch for combinatorial blow-up.
+- **Anatomy & API.** Named slots; boolean toggles for optional parts; instance-swap where
+  it fits. Component-property names are consistent across the system.
+- **State completeness.** Interactive components carry default / hover / focus / active /
+  disabled / error where relevant.
+- **Canonical components are mandatory in screens.** Inner header → the canonical inner-header
+  variant. Menu row → the canonical list-item variant. Hero amount → the canonical amount
+  input. Confirmation → the canonical dialog + illustration swap. Hand-built equivalents are
+  drift.
+
+`TODO:` list any {{SYSTEM_NAME}}-specific pattern rules (e.g. the standard mobile frame size,
+chrome-at-end, scroll conventions) here as shared ground truth — the separate screen-creation
+context applies them when composing screens.
+
+---
+
+## 3. Reference benchmarks (precedence)
+
+1. **This file wins.** DESIGN.md is the primary authority on any conflict.
+2. **External systems, where applicable** — consult only where this file points to them or
+   is silent on the case, and note which one and why:
+   - **Material 3** — general component anatomy + interaction defaults.
+   - **IBM Carbon** — token architecture, theming rigor, data-dense patterns.
+   - **Shopify Polaris** — commerce/transactional pattern language.
+   - **Apple HIG** — iOS platform conventions (mobile-first app).
+   - **GOV.UK Design System** — forms, transactional flows, error-handling, plain language.
+   - **ARIA APG** — accessible interactive-pattern anatomy (dialog focus, list/menu
+     semantics, disclosure, etc.).
+3. **Novel cases** — if both this file and the external refs are silent, flag it and add a
+   ruling here. Do not invent ad hoc.
+
+`TODO:` for each external system, note specifically *what {{SYSTEM_NAME}} follows it for* and
+*where {{SYSTEM_NAME}} deliberately deviates* (with the rationale).
+
+---
+
+## 4. Accessibility baseline
+
+- **WCAG 2.2 AA** is the floor, carried at the source so consumers inherit it.
+- **Contrast:** 4.5:1 body text, 3:1 large text + UI/borders. Semantic fg/bg token PAIRS
+  are guaranteed to pass — pairing is a system property, not a per-screen check.
+- **Target size:** 44×44 (exceeds the 2.5.8 minimum).
+- **Focus:** visible focus-state tokens exist; focus + reading order is logical.
+- **Resilience:** dynamic-type tolerant; `prefers-reduced-motion` respected.
+- **Semantics:** ARIA intent defined at the source / spec level, carried into handoff.
+
+`TODO:` record the {{SYSTEM_NAME}}-specific verified contrast facts (which brand surface passes at
+what ratio, any known dark-only treatments) as they're confirmed — don't carry assumptions.
+
+---
+
+## 5. Governance
+
+- **Single source of truth.** {{SYSTEM_NAME}} source Figma + this repo. No parallel definitions.
+- **Versioned.** Every change lands a changelog entry under the current version; mid-version
+  spec corrections append a `patches[]` entry rather than bumping the version.
+- **False-gap guard.** Confirm a token/component/pattern doesn't already exist before adding.
+- **Generalize, don't special-case.** A new thing must be a reusable pattern, not a one-off.
+- **Deprecation has a path.** Nothing is removed without a documented migration.
+- **Binding is audited, not assumed.** The binding audit gates every publish — zero unbound.
+
+---
+
+## 6. Evaluation frameworks (the heuristic canon)
+
+Beyond the system benchmarks (§3), {{SYSTEM_NAME}} evaluates design against five established heuristic
+frameworks. **DESIGN.md still wins on conflict (§3.1)** — these inform the agents' lenses, they
+don't override {{SYSTEM_NAME}} rulings. Apply each **at the layer it governs**: the system / component /
+brand parts run in this context; several principles are screen- and flow-level and therefore
+belong to the **separate screen-creation context**, not this one.
+
+- **Dieter Rams — 10 Principles for Good Design** — the *ethos* for the whole system: useful,
+  understandable, unobtrusive, honest, thorough to the last detail, long-lasting, and **as little
+  design as possible**. North star for `ds-steward` (restraint — no decorative tokens/variants;
+  generalize, don't special-case) and `brand-designer` (aesthetic + honest expression).
+- **Shneiderman — 8 Golden Rules.** *Component layer* (`ds-steward` bakes in): **consistency**
+  (uniform anatomy/naming/behavior), **informative feedback** (state set per §2.4), **simple error
+  handling + easy reversal** (error states, undo affordances), **reduce short-term memory load**
+  (self-describing component APIs). *Screen layer* (separate context): dialogue **closure**,
+  **shortcuts** for frequent users, **internal locus of control** across a flow.
+- **Tognazzini — First Principles.** **Color** (functional, accessible, secondary to content) is a
+  `ds-steward` + `brand-designer` rule (§1, §4). *Anticipation, autonomy, efficiency of the user,
+  visible navigation (You-Are-Here), explorable interfaces* are screen-level → separate context.
+- **Gerhardt-Powals — Cognitive Engineering.** Reduce cognitive load: **automate unwanted workload,
+  reduce uncertainty, fuse data, present new information with meaningful aids.** `ds-steward`
+  applies these to *pattern* design (clear states, sensible defaults, data-display components);
+  screen composition applies them in the separate context.
+- **Weinschenk & Barker — Classification.** **Accessibility · Error Prevention · User Feedback** are
+  carried at the *source* by `ds-steward` (§4 + component states), so screens inherit them.
+  **Navigation · System Capabilities** are screen/flow-level → separate context.
+
+**Layer map — use it where it's needed:**
+
+| Layer | Heuristics applied here | Owner |
+|---|---|---|
+| Token / system ethos | Rams (restraint, honesty, thoroughness); Tognazzini Color | `ds-steward` |
+| Component interaction | Shneiderman (consistency, feedback, error/reversal, memory load); Gerhardt-Powals (reduce uncertainty, meaningful aids); Weinschenk (accessibility, error prevention, feedback) | `ds-steward` |
+| Brand / expression | Rams (innovative, aesthetic, unobtrusive, honest, long-lasting); Tognazzini Color | `brand-designer` |
+| Screen / flow | Shneiderman (closure, shortcuts, locus of control); Tognazzini (anticipation, autonomy, navigation, explorability, efficiency); Gerhardt-Powals (fuse data, automate workload); Weinschenk (navigation, system capabilities) | **separate screen-creation context** |
+
+**Operationalized per pipeline step** in `AGENTS-HANDOFF.md` → *Heuristic canon per pipeline step*:
+which slice fires at the brand decision · tokenize/build/bind · binding-gate/publish · drift-check/commit.
+
+---
+
+## How agents use this file
+
+- `ds-steward` — reads §1–§6 at plan and as the pre-publish gate (the `system_design_lens`),
+  applying the system + component layer of §6.
+- `component-designer` — reads §1–§4 + §6 (the component-layer slice): how to build + bind to meet
+  the token standards, state completeness, and accessibility baseline.
+- `brand-designer` — reads §1 + §6 (Rams + Tognazzini Color): how a brand decision becomes a token,
+  and proposes additions here when setting new expressive direction.
+
+DESIGN.md is shared ground truth. The **separate screen-creation context** (screen building +
+flows/specs) also reads it — §2 (canonical components), §4 (accessibility / interaction
+conventions), and the **screen-level** heuristics of §6 — but those roles live outside this
+design-system context.

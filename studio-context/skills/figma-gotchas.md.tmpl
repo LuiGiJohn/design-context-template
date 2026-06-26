@@ -1,0 +1,28 @@
+# figma-gotchas (read-only mirror)
+
+> 🔒 **READ-ONLY MIRROR of `{{DS_REPO}}/skills/figma-gotchas.md` — do not edit here.**
+> Refresh after each {{SYSTEM_NAME}} publish via:
+> ```
+> cp ../{{DS_REPO}}/skills/figma-gotchas.md skills/figma-gotchas.md
+> ```
+> (then re-add this banner). In build mode this is **empty** until the DS context's first publish.
+> The DS context owns the gotchas canon; the studio context vendors it to read before `use_figma` work.
+
+Hard-won Figma Plugin-API traps. **Read this BEFORE writing any `use_figma` code** — async/font rules,
+binding completeness, swap/clone detachment, variant-picker failures, the `VariableID:` prefix trap.
+The full set (Gotchas #1–#29) lives in the DS source; the studio context relies most on these:
+
+| Gotcha | Why the studio context cares |
+|---|---|
+| #1 | load all fonts before ANY text op |
+| #16 | screen scroll: chrome at END, `numberOfFixedChildren` counts from the end |
+| #20 | consumer instances cache old layout until swapped — the heart of `rebind` |
+| #21 | `swapComponent` resets vector fills → re-bind colored glyphs after every swap |
+| #27 | binding completeness must be AUDITED, not assumed (zero unbound color is the gate) |
+| #28 | clone/swap detach property refs; property defaults are SHARED across variants |
+| #29 | `getVariableByIdAsync` needs the `VariableID:` prefix; a bare id silently no-ops |
+
+These are referenced by name throughout `skills/screens.md` and the `rebind` skill — keep this mirror
+fresh so those references resolve to the current canon.
+
+> Source of truth: `{{DS_REPO}}/skills/figma-gotchas.md`. Refresh, don't author, here.

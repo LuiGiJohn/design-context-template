@@ -1,0 +1,115 @@
+# {{SYSTEM_NAME}} manifest — schema
+
+> ⛔ **TODO — SCHEMA DOC, NOT THE MANIFEST ITSELF.** This file documents the shape of the
+> per-version manifest JSON (`manifest/manifest-{{DS_VERSION}}.json`). It does NOT
+> contain real {{SYSTEM_NAME}} data.
+>
+> **To start:** copy the skeleton at the bottom into `manifest/manifest-{{DS_VERSION}}.json`,
+> fill `summary` from `tools/inventory-snippet.js`, seed `keyTokens` / `keyComponents` with your
+> load-bearing tokens + components, and append a `patches[]` entry on every published change. See
+> `manifest/baseline.example.json` for a tiny, concrete, valid instance.
+>
+> The manifest is **curated ground truth** — it does not enumerate every variable/component, only the
+> counts + the key tokens/components + the change history. `tools/doc-drift-checker.py` validates it
+> against a live inventory.
+
+The manifest is the single curated record of "what {{SYSTEM_NAME}} is at version X and how it got
+there." One file per published version. The drift checker (`tools/doc-drift-checker.py`) asserts the
+`summary` counts, `keyTokens`, and `keyComponents` against a live `inventory-snippet.js` dump.
+
+---
+
+## Top-level fields
+
+| Field | Type | Required | Meaning |
+|---|---|---|---|
+| `version` | string | ✅ | the published version, e.g. `"{{DS_VERSION}}"` |
+| `publishedAt` | string (date) | ✅ | ISO date this version was published |
+| `lastPatchedAt` | string (date) | ✅ | ISO date of the most recent `patches[]` entry |
+| `patches` | array&lt;Patch&gt; | ✅ | reverse-chronological change log (newest first) |
+| `summary` | Summary | ✅ | the counts the drift checker validates |
+| `collections` | array&lt;Collection&gt; | ✅ | variable collections + per-collection counts |
+| `keyTokens` | object&lt;name → "VariableID:.."&gt; | ✅ | load-bearing tokens, validated by ID + name |
+| `keyComponents` | object&lt;label → publishedKey&gt; | ✅ | load-bearing components, validated by key |
+| `knownGaps` | array&lt;string&gt; | ✅ | documented gaps + their interim workarounds |
+| `<version>_changes` | object | optional | rich detail on the headline additions this version (e.g. `keyComponents` with full prop definitions) |
+| `gotchas_added_*` / `carryover_from_*` | optional | optional | narrative notes carried across versions |
+
+### Patch (one entry per published change)
+
+| Field | Type | Meaning |
+|---|---|---|
+| `date` | string (date) | when the change landed |
+| `scope` | string | one-line summary of WHAT changed (component/token + version) |
+| `change` | string | the full technical detail — IDs, keys, before/after values, rationale |
+| `republished` | boolean | whether this change has been published to consumers |
+| `consumerImpact` | string | breaking vs non-breaking, what consumers must do (e.g. swap stale instances) |
+| `documentedAs` | string | where else this is recorded (skills, CLAUDE.md, knownGaps) |
+| `qa` | string | how it was verified (render-verify, binding audit, contrast recompute) |
+| `tokenChange` | object | optional — structured `{ token, id, from, to }` for a token re-alias |
+
+### Summary (drift-checked counts)
+
+```json
+{
+  "variableCount": 0,
+  "textStyleCount": 0,
+  "effectStyleCount": 0,
+  "componentSetCount": 0,
+  "iconCount": 0,
+  "illustrationCount": 0
+}
+```
+
+`componentSetCount` is the curated count of DOCUMENTED UI sets — the drift checker treats it as
+**informational**, not drift (the live file also contains icon/illustration sets).
+
+### Collection
+
+```json
+{ "name": "1. Primitives", "id": "VariableCollectionId:__:_", "variableCount": 0, "modes": ["Value"] }
+```
+
+### keyTokens / keyComponents (the validated maps)
+
+- `keyTokens` — `{ "Surface/Page": "VariableID:__:_", ... }`. The value may carry a trailing annotation
+  (`"VariableID:24:88 (4px)"`); the checker reads only the bare `VariableID:` prefix. Each is validated
+  by **both** its VariableID and its name against the live file.
+- `keyComponents` — `{ "Status Bar / Style=Light": "<40-hex-key>", ... }`. Each key must resolve against
+  every live component + variant key.
+
+### knownGaps
+
+A flat array of strings, each a gap + its workaround (and resolution note once closed). Example:
+`"Body/Default-Bold style still missing — workaround: inline SemiBold override"`.
+
+---
+
+## Minimal {{DS_VERSION}} skeleton
+
+Copy this into `manifest/manifest-{{DS_VERSION}}.json` and fill it in:
+
+```json
+{
+  "version": "{{DS_VERSION}}",
+  "publishedAt": "{{DS_PUBLISHED_DATE}}",
+  "lastPatchedAt": "{{DS_PUBLISHED_DATE}}",
+  "patches": [],
+  "summary": {
+    "variableCount": 0,
+    "textStyleCount": 0,
+    "effectStyleCount": 0,
+    "componentSetCount": 0,
+    "iconCount": 0,
+    "illustrationCount": 0
+  },
+  "collections": [
+    { "name": "1. Primitives", "id": "VariableCollectionId:__:_", "variableCount": 0, "modes": ["Value"] },
+    { "name": "2. Tokens",     "id": "VariableCollectionId:__:_", "variableCount": 0, "modes": ["Value"] },
+    { "name": "3. Semantic",   "id": "VariableCollectionId:__:_", "variableCount": 0, "modes": ["Light"] }
+  ],
+  "keyTokens": {},
+  "keyComponents": {},
+  "knownGaps": []
+}
+```

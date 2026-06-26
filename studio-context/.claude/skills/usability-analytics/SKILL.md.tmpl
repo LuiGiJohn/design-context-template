@@ -1,0 +1,121 @@
+---
+name: usability-analytics
+description: >
+  The canon for turning a prototype's behavioral analytics into screen-validation EVIDENCE — the
+  metrics taxonomy, best-practice benchmark thresholds, and the analysis procedure the data-analyst
+  runs and the ux-designer validates against. Reads the ap-app-flow-style instrumentation (PostHog
+  events/funnels/cohorts + time-on-task, Microsoft Clarity heatmaps/replays, post-task SEQ, the
+  /results dashboard) and benchmarks task success, efficiency, satisfaction, and drop-off against
+  documented UX norms — triangulating quant (PostHog) with qual (Clarity), with honest statistical
+  caution. Use on "analyze the usability data", "what does the data say", "validate this screen with
+  analytics", "benchmark task success / SEQ / time-on-task", "where are users dropping off".
+---
+
+# Usability analytics — behavioral validation canon
+
+_Examples below reference the original {{PROJECT_NAME}} prototype's instrumentation (PostHog +
+Microsoft Clarity + SEQ); the metrics taxonomy, benchmarks, and method are tool- and product-agnostic._
+
+How the studio context validates screens with DATA, not opinion. Drive it interactively, or via the
+`data-analyst` agent for a hands-off report. It turns the prototype's instrumentation into
+evidence the `ux-designer` uses to validate or revise screens — the empirical complement to
+`ux-flow-review` (expert heuristic evaluation).
+
+> Scope: behavioral analytics + UX benchmarks. This validates the *screen/flow*, not {{SYSTEM_NAME}}
+> component internals. A finding that traces to a component defect is a DS gap → route to `{{DS_REPO}}`.
+
+---
+
+## Sources (the ap-app-flow instrumentation; generalize per prototype)
+
+- **PostHog** — events + properties + funnels + cohorts + time-on-task. Events incl. `test_started`,
+  `task_started` / `task_completed` / `task_failed` (tasks `login`, `find_pages`), `passcode_key` /
+  `passcode_backspace`, `biometric_tapped`, `seq_rating`, `need_help_clicked`, `quick_action`,
+  `page_discovered`, `$pageview`. Key props: `method`, `duration_s`, `cohort`, `attempts`, `wrong`,
+  `backspaces`, `rating`, `is_test`. Ready-made SQL lives in `prototypes/ap-app-flow/analytics-queries.md`.
+- **Microsoft Clarity** — heatmaps (click/scroll), session replays, and behavioral signals: rage
+  clicks, dead clicks, quick-backs, excessive scrolling. Filter the `is_test` tag.
+- **Post-task SEQ** — `seq_rating` (1–7) per task.
+- **/results dashboard** — the prototype's built-in summary.
+
+**Always exclude practice/QA runs:** `AND toString(properties.is_test) != 'true'` in PostHog;
+exclude `is_test = true` in Clarity. Drop pre-deploy `localhost` sessions.
+
+## Metric taxonomy (Sauro/Lewis usability dimensions)
+
+| Dimension | Metric | Source |
+|---|---|---|
+| **Effectiveness** | task success / completion rate · error rate (wrong passcode, retries) · failed-task rate | `task_completed` vs `task_started`/`task_failed`, `attempts`/`wrong` |
+| **Efficiency** | time-on-task (mean + median + distribution) · steps/backspaces to complete | `duration_s`, `backspaces` |
+| **Satisfaction** | SEQ (1–7) per task · need-help taps | `seq_rating`, `need_help_clicked` |
+| **Behavior / engagement** | funnel step conversion + drop-off · discovery rate · heatmap attention · rage/dead clicks | funnels, `page_discovered`, Clarity |
+
+## Best-practice benchmarks (state the source; treat as triggers, not verdicts)
+
+- **Task success** — industry average ≈ **78%** (Sauro). Below → effectiveness problem; for critical
+  fintech tasks (login, send, pay) aim materially higher and treat misses as serious.
+- **SEQ (1–7)** — mean **≥ 5.5** = good; **< 4.5** = problem screen; compare tasks against each other.
+- **SUS** (if collected) — **≥ 68** above average, **≥ 80** excellent.
+- **Time-on-task** — benchmark against a target/baseline; flag tasks meaningfully above it. Watch for
+  **bimodal** distributions (a fast cluster + a lost cluster) — the mean hides them; read the median + spread.
+- **Error / retry rate** — high `attempts`/`wrong`/`backspaces` on passcode/OTP/amount = friction.
+- **Funnel drop-off** — flag any step with disproportionate drop vs its neighbors; quantify per step.
+- **Clarity signals** — rage clicks / dead clicks / quick-backs / u-turns are direct evidence of
+  confusion on a specific element; pair the metric with a replay.
+
+## Fintech overlay (always check)
+
+Auth/OTP step drop-off · amount-entry errors + corrections · **confirmation hesitation** (long dwell
+before a Send/Pay confirm = uncertainty) · abandon-before-send · balance-visibility toggling. Money
+tasks earn a higher bar.
+
+## Method
+
+1. **Frame the question** — which screen/flow + task, which cohort(s), what hypothesis from the
+   usability test or `ux-designer` brief are we validating?
+2. **Pull the metrics** — run the relevant `analytics-queries.md` queries (or PostHog SQL); collect
+   SEQ + Clarity signals. Exclude `is_test`.
+3. **Benchmark** — compare each metric to the threshold above; segment by `cohort` and by `method`.
+4. **Triangulate** — back every quant finding with a Clarity replay/heatmap (the "why" behind the
+   number). A number without a behavior is a lead, not a finding.
+5. **Caveat the stats** — report sample size (n) per cell; small-n usability (5–8) is qualitative —
+   don't quote rates as precise. Quant rates need ~20+ per cell to be stable; A/B comparisons need a
+   power check before claiming significance (use `pm-data-analytics:ab-test-analysis`). Give a
+   confidence level, never false precision.
+6. **Verdict per screen/hypothesis** — validated · invalidated · inconclusive (needs more data).
+
+## Helper skills (use where they fit)
+
+`pm-data-analytics:sql-queries` (build PostHog/SQL), `pm-data-analytics:cohort-analysis` (retention /
+cohort trends), `pm-data-analytics:ab-test-analysis` (significance + ship/extend/stop on an A/B).
+
+## Output format
+
+**1. Snapshot** — what data · date range · n (per cohort/task) · exclusions applied.
+
+**2. Metric scorecard**
+
+| Metric | Value | Benchmark | Verdict | Source / n |
+|---|---|---|---|---|
+| Task success | | ≈78% / higher for money | | |
+| Time-on-task (median) | | target/baseline | | |
+| SEQ | | ≥5.5 | | |
+| Error / retry | | low | | |
+| Funnel drop-off | | per-step | | |
+
+**3. Behavioral findings** — quant + paired Clarity evidence, by severity (blocker/major/minor),
+each with the screen/step + recommendation.
+
+**4. Validation verdicts** — per screen/hypothesis: validated / invalidated / inconclusive, with the
+evidence and the confidence level.
+
+**5. Recommendations → `ux-designer`** — what to change or re-test, ranked; flag any DS-gap routing.
+
+**6. Data-quality caveats** — sample size, significance, biases, what we can't yet conclude.
+
+## Rules
+
+- Evidence over impression; every claim cites the metric + n (and a replay where qual).
+- Don't over-claim significance on small n — say "directional / needs more data."
+- The data informs the `ux-designer`'s validation; the analyst doesn't redesign screens or touch {{SYSTEM_NAME}}.
+- A behavioral problem that traces to a component defect is a DS gap — route it, don't absorb it.

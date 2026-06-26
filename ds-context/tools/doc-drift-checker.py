@@ -1,0 +1,224 @@
+#!/usr/bin/env python3
+"""
+APS Documentation Drift Checker
+
+Compares the CURATED APS manifest (manifest/aps-vX.Y.json) against a live
+inventory of the APS Figma source and reports drift.
+
+The manifest is a curated document — it does NOT enumerate every variable or
+component. So this checker validates exactly what the manifest asserts:
+
+  - summary.variableCount        vs total variables in the live file
+  - summary.textStyleCount       vs total text styles in the live file
+  - collections[].variableCount  vs live count per collection (matched by name)
+  - keyTokens   {name: "VariableID:.."}  each must exist in the live file,
+                validated by BOTH VariableID and name
+  - keyComponents {label: publishedKey}  each key must resolve in the live file
+                (matched against every component + variant key)
+
+  summary.componentSetCount is INFORMATIONAL, not drift: it is a curated count
+  of documented UI sets (e.g. 27), while the live file also contains many icon
+  and illustration sets (e.g. 122).
+
+The "actual" JSON is produced by tools/aps-inventory-snippet.js run via a
+Figma use_figma call against the APS source. That snippet captures each
+variable's `id` (for keyToken validation) and `name`, every component/variant
+`key`, and per-collection membership.
+
+Usage:
+    python aps-doc-drift-checker.py path/to/aps-vX.Y.json path/to/aps-actual.json
+
+Exit code: 0 if CLEAN, 1 if drift detected (CI-friendly).
+
+Author: APS design system tooling
+"""
+
+import json
+import sys
+from pathlib import Path
+
+
+def load_json(path: Path) -> dict:
+    with open(path) as f:
+        return json.load(f)
+
+
+def _token_id(value: str) -> str:
+    """Extract the bare VariableID from a keyTokens value.
+
+    e.g. 'VariableID:24:88 (4px)' -> 'VariableID:24:88'
+         'VariableID:26:24'       -> 'VariableID:26:24'
+    """
+    return value.split()[0] if value else value
+
+
+def check_drift(manifest: dict, actual: dict) -> dict:
+    report = {"sections": [], "info": []}
+
+    actual_vars = actual.get("variables", [])
+    actual_var_names = {v.get("name") for v in actual_vars}
+    actual_var_ids = {v.get("id") for v in actual_vars if v.get("id")}
+    actual_styles = actual.get("textStyles", [])
+    actual_comps = actual.get("components", [])
+
+    # Build the set of every published component key (standalone + variants).
+    actual_comp_keys = set()
+    for c in actual_comps:
+        if c.get("variantKeys"):
+            for vk in c["variantKeys"]:
+                if vk.get("key"):
+                    actual_comp_keys.add(vk["key"])
+        elif c.get("key"):
+            actual_comp_keys.add(c["key"])
+    actual_set_count = sum(1 for c in actual_comps if c.get("type") == "COMPONENT_SET")
+
+    summary = manifest.get("summary", {})
+
+    # 1. Variable count
+    exp_var = summary.get("variableCount")
+    if exp_var is not None:
+        report["sections"].append({
+            "label": "Variable count",
+            "drift_count": 0 if exp_var == len(actual_vars) else 1,
+            "documented": exp_var,
+            "actual": len(actual_vars),
+        })
+
+    # 2. Variable collections (matched by name)
+    actual_coll_counts = {}
+    for v in actual_vars:
+        cn = v.get("collection")
+        actual_coll_counts[cn] = actual_coll_counts.get(cn, 0) + 1
+    coll_issues = []
+    for mc in manifest.get("collections", []):
+        name = mc.get("name")
+        exp = mc.get("variableCount")
+        act = actual_coll_counts.get(name)
+        if act is None:
+            coll_issues.append({"collection": name, "issue": "missing in APS"})
+        elif exp is not None and exp != act:
+            coll_issues.append({"collection": name, "issue": "count differs",
+                                "documented": exp, "actual": act})
+    report["sections"].append({
+        "label": "Variable collections",
+        "drift_count": len(coll_issues),
+        "issues": coll_issues,
+    })
+
+    # 3. Key tokens — each must exist by VariableID and by name
+    kt = manifest.get("keyTokens", {})
+    have_ids = bool(actual_var_ids)
+    token_issues = []
+    for name, value in kt.items():
+        vid = _token_id(value)
+        name_ok = name in actual_var_names
+        id_ok = (vid in actual_var_ids) if have_ids else None
+        if not name_ok or id_ok is False:
+            token_issues.append({
+                "token": name,
+                "expected_id": vid,
+                "id_found": id_ok,
+                "name_found": name_ok,
+            })
+    report["sections"].append({
+        "label": "Key tokens",
+        "drift_count": len(token_issues),
+        "checked": len(kt),
+        "issues": token_issues,
+    })
+    if kt and not have_ids:
+        report["info"].append(
+            "Key tokens validated by NAME only — the inventory has no variable "
+            "'id' field. Re-run the updated inventory snippet for VariableID checks."
+        )
+
+    # 4. Text style count
+    exp_styles = summary.get("textStyleCount")
+    if exp_styles is not None:
+        report["sections"].append({
+            "label": "Text style count",
+            "drift_count": 0 if exp_styles == len(actual_styles) else 1,
+            "documented": exp_styles,
+            "actual": len(actual_styles),
+        })
+
+    # 5. Key components — each published key must resolve in the live file
+    kc = manifest.get("keyComponents", {})
+    missing_comps = sorted(label for label, key in kc.items()
+                           if key not in actual_comp_keys)
+    report["sections"].append({
+        "label": "Key components",
+        "drift_count": len(missing_comps),
+        "checked": len(kc),
+        "missing_in_actual": missing_comps,
+    })
+
+    # Informational: component-set count (curated vs live total)
+    report["info"].append(
+        "Component sets (informational, not drift): manifest curated count = "
+        f"{summary.get('componentSetCount')}, live total = {actual_set_count}"
+    )
+
+    report["total_drift"] = sum(s.get("drift_count", 0) for s in report["sections"])
+    report["status"] = "CLEAN" if report["total_drift"] == 0 else "DRIFT_DETECTED"
+    return report
+
+
+def format_report(report: dict) -> str:
+    lines = []
+    lines.append("=" * 70)
+    lines.append(f"APS Documentation Drift Report — Status: {report['status']}")
+    lines.append(f"Total drift items: {report['total_drift']}")
+    lines.append("=" * 70)
+
+    for s in report["sections"]:
+        lines.append(f"\n── {s['label']} — {s['drift_count']} drift item(s) ──")
+        if "documented" in s:
+            mark = "✓" if s["drift_count"] == 0 else "⚠️ "
+            lines.append(f"  {mark} documented: {s['documented']}, actual: {s['actual']}")
+        if "checked" in s:
+            lines.append(f"  checked: {s['checked']}")
+        if s.get("missing_in_actual"):
+            lines.append("  ⚠️  missing in APS (documented but not found):")
+            for item in s["missing_in_actual"]:
+                lines.append(f"    - {item}")
+        if s.get("issues"):
+            lines.append("  ⚠️  issues:")
+            for i in s["issues"]:
+                lines.append(f"    - {i}")
+
+    if report["info"]:
+        lines.append("\n── Informational (not counted as drift) ──")
+        for i in report["info"]:
+            lines.append(f"  • {i}")
+
+    return "\n".join(lines)
+
+
+def main():
+    if len(sys.argv) != 3:
+        print(__doc__)
+        sys.exit(1)
+
+    manifest_path = Path(sys.argv[1])
+    actual_path = Path(sys.argv[2])
+
+    if not manifest_path.exists():
+        print(f"Manifest file not found: {manifest_path}", file=sys.stderr)
+        sys.exit(1)
+    if not actual_path.exists():
+        print(f"Actual state file not found: {actual_path}", file=sys.stderr)
+        sys.exit(1)
+
+    manifest = load_json(manifest_path)
+    actual = load_json(actual_path)
+
+    report = check_drift(manifest, actual)
+    print(format_report(report))
+
+    # Exit non-zero if drift detected (useful for CI)
+    sys.exit(0 if report["status"] == "CLEAN" else 1)
+
+
+if __name__ == "__main__":
+    main()

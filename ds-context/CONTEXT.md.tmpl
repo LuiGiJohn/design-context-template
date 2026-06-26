@@ -1,0 +1,119 @@
+# {{SYSTEM_NAME}} Claude Context — Bootstrap
+
+You are Claude, working on the {{SYSTEM_NAME}} ({{SYSTEM_FULL_NAME}}) design system.
+
+This repo is the **persistent context** for all {{SYSTEM_NAME}} design system work. The user references this repo at the start of every new chat so you have continuity across sessions without copy-paste.
+
+---
+
+## ⚠️ Scope — design system ONLY
+
+This context maintains the **{{SYSTEM_NAME}} design system itself** — tokens, styles, components, variants,
+bindings, the manifest, skills docs, publish hygiene, drift, and the spiels mechanism. All DS work
+happens *inside Figma* (the {{SYSTEM_NAME}} SOURCE) via the `use_figma` tool, which **requires the Figma Desktop
+Bridge** (Figma desktop app open + bridge plugin running). If the bridge is NOT available, **STOP and
+tell the user** — never fall back to writing code.
+
+**Out of scope — a SEPARATE context owns these:** building / recreating consumer *screens*, flows /
+IA / specs, and coded prototypes (React / Next / HTML / Storybook). This context publishes {{SYSTEM_NAME}} +
+updates `skills/`+`manifest/`; the separate screen-creation context consumes the published library to
+build. A {{SYSTEM_NAME}} gap found while building a screen comes back here as a tokenization / component request.
+
+**Hard rule:** never emit React / HTML / coded output here. Screen building and prototypes live in the
+other context — point the user there.
+
+---
+
+## How to use this context
+
+1. Read this file + `CLAUDE.md` (Claude Code loads `CLAUDE.md` automatically on startup).
+2. Load the relevant `skills/*.md` for the task (table below).
+3. **Delegate to the role agents** — `ds-steward` (tokens/styles, token architecture, the binding-audit gate, publish, drift, manifest/skills, spiels, lookup), `component-designer` (build/modify components + variants/states, bind to tokens), or `brand-designer` (identity / illustration / photo / video) — or run a command (`/design-system-check`, `/binding-audit`, `/drift-check`). The agents carry the canonical workflows; there are no separate kickoff/scenario files.
+
+> Screen building + coded prototypes are **out of scope** here — a separate context owns them (see the Scope gate above).
+
+---
+
+## Project facts (always relevant)
+
+- **{{SYSTEM_NAME}} Figma source**: `{{DS_FIGMA_KEY}}`
+- **Consumer file ({{CONSUMER_FILE_NAME}})**: `{{CONSUMER_FIGMA_KEY}}` — the *separate* screen-creation context's surface; this context only publishes the library it consumes
+- **{{SYSTEM_NAME}} library_key**: `{{DS_LIBRARY_KEY}}`
+- **Current {{SYSTEM_NAME}} version**: {{DS_VERSION}} (published {{DS_PUBLISHED_DATE}})
+- **`ds_mode`**: `{{DS_MODE}}` — in **consume** mode the {{SYSTEM_NAME}} library is published *elsewhere* and this repo only tracks/consumes it; in **build** mode you are *authoring* {{SYSTEM_NAME}} here (this is the authoring context — tokens/components/publish live with these agents).
+
+## User working preferences (always honored)
+
+- **Methodology**: {{USER_METHODOLOGY}}
+- **Communication**: {{USER_COMMUNICATION}}
+- **Code style**: {{USER_CODE_STYLE}}
+- **Mentorship**: {{USER_MENTORSHIP}}
+- **Format**: {{USER_FORMAT}}
+- **Honesty**: {{USER_HONESTY}}
+
+## Skill files (load per task)
+
+| Skill | Path | When to load |
+|---|---|---|
+| ds-tokens | `skills/ds-tokens.md` | Any work involving colors, text styles, variables, or design tokens |
+| ds-components | `skills/ds-components.md` | Any work using {{SYSTEM_NAME}} components |
+| figma-gotchas | `skills/figma-gotchas.md` | ALWAYS when using `use_figma` tool — non-negotiable |
+| component-authoring-standards | `skills/component-authoring-standards.md` | Before building/editing any component — the authoring gate |
+| spiels | `skills/spiels.md` | i18n / localized string variables (mechanism) |
+
+## Tools
+
+| Tool | Path | Use |
+|---|---|---|
+| Inventory snippet | `tools/inventory-snippet.js` | Run in Figma to dump current {{SYSTEM_NAME}} state |
+| Drift checker | `tools/doc-drift-checker.py` | Compare manifest vs actual to detect drift |
+
+## Manifest
+
+`manifest/manifest-{{DS_VERSION}}.json` is the canonical baseline state. After each {{SYSTEM_NAME}} publish, regenerate via inventory snippet and update this manifest. Previous manifests are retained as historical baselines.
+
+For mid-version spec corrections (no new publish), append a `patches[]` entry to the current manifest rather than incrementing the version.
+
+## Agents + commands (the workflows live here)
+
+The canonical workflows are baked into the agents (Claude Code) — not separate kickoff files.
+
+| Surface | Owns | Does |
+|---|---|---|
+| agent `ds-steward` | variables/styles authoring, token architecture, governance, the binding-audit gate, publish, drift, manifest, skills/docs, spiels mechanism, lookup | authors tokens, then independently audits + publishes what `component-designer` builds |
+| agent `component-designer` | component/component_set construction, variants, states, layout, visual craft, binding to tokens | builds + binds components; hands off to `ds-steward` to audit + publish |
+| agent `brand-designer` | identity direction, illustration, photo/video, marketing | hands DECISIONS to ds-steward to tokenize |
+| `/design-system-check` | → `ds-steward` | run the system-design lens |
+| `/binding-audit` | → `ds-steward` | binding-completeness gate (the seam audit) |
+| `/drift-check` | → `ds-steward` | manifest vs actual drift |
+
+---
+
+## Critical rules (always)
+
+1. **Plugin API cannot publish a library** — user must click "Publish Library" in Figma UI
+2. **`use_figma` requires font loading** — load all {{FONTS}} weights before any text op
+3. **Render-verify after every visual change** — call `figma_get_component_image` to confirm
+4. **Always offer to update skills/manifest** when {{SYSTEM_NAME}} changes happen — drift kills the system
+5. **Honest scope notes always** — if a workaround is needed, say so explicitly
+6. **Anchor frame pattern for centered text** — when a layout has toggleable side slots with centered middle content, wrap each side in a fixed-size anchor frame (see figma-gotchas).
+7. **URL node-IDs may resolve to pages, not components** — when `figma_get_component` returns `type: "CANVAS"`, scan children for the real COMPONENT_SET (see figma-gotchas).
+8. **Variants must live inside their component_set's bounds** — orphaned variants render via direct API call but get suppressed in the variant picker UI (see figma-gotchas).
+9. **Audit bindings before publish** — run the binding audit script on any component built via `use_figma`. Target zero unbound elements. `clone()` does NOT carry variable bindings reliably; re-bind after cloning.
+10. **Never fall back to code** — design-system work is Figma (`use_figma`) via the Desktop Bridge. If the bridge is unavailable, STOP and tell the user. Coded prototypes + screen building are out of scope here — they live in the separate screen-creation context. See the Scope gate at the top.
+
+## Communication format
+
+User prefers structured responses with `yaml` code blocks for planning and decision points. Inline prose for execution and explanation. NO tappable buttons / `ask_user_input_v0` — straight conversation only.
+
+---
+
+## Changelog — current version
+
+- {{DS_VERSION}} — initial scaffold.
+
+---
+
+After reading this file, confirm context is loaded (one line), then ask what the task is — load the
+matching `skills/*.md` and delegate to the right agent (`ds-steward` / `component-designer` /
+`brand-designer`) or command.

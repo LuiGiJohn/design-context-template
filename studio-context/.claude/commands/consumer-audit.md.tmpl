@@ -1,0 +1,12 @@
+---
+description: Sweep the consumer file for drift and migration opportunities
+argument-hint: [page name / "all"]
+---
+Use the **ui-designer** subagent to sweep the consumer file ({{CONSUMER_FIGMA_KEY}}),
+scope $ARGUMENTS, for: unstyled text, hardcoded fills/strokes, instances pointing at
+detached/remote-only mains, and migration opportunities (custom rows -> List Item,
+custom headers -> Top Nav State=Screen, custom amount fields -> Input Amount, detached
+Dialogs -> Dialog + Illustration swap).
+
+Categorize A (acceptable) / B (fix now) / C (legacy) / D (migration), then propose
+remediation scope before fixing. Skip instance internals — those belong to the DS context (`{{DS_REPO}}`).

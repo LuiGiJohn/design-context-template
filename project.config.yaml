@@ -1,0 +1,75 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# project.config.yaml — the single source of truth for this project's two contexts
+#
+# Fill this in, then run  /init-project  (or  node scripts/init-project.mjs).
+# The init step renders ds-context/ + studio-context/ into two ready repos,
+# substituting every {{PLACEHOLDER}} below and selecting scaffolding by `ds_mode`.
+#
+# Anything left as REQUIRED must be filled. Anything marked (consume only) /
+# (build only) is ignored in the other mode. See TEMPLATE-GUIDE.md for the full
+# placeholder reference, and project.config.example.yaml for a worked example.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── THE SWITCH ───────────────────────────────────────────────────────────────
+# consume = a design system already exists + is published; the studio context
+#           points at it (you supply library_key + source key below).
+# build   = no design system yet; the DS context authors one from scratch and the
+#           studio consumes it as it grows (library_key is filled in after first publish).
+ds_mode: consume            # consume | build      REQUIRED
+
+# ── PROJECT / BRAND ──────────────────────────────────────────────────────────
+project:
+  name:            ""       # product/org, e.g. "Aster Pay"                      REQUIRED → {{PROJECT_NAME}}
+  system_name:     ""       # design-system short name, e.g. "APS"               REQUIRED → {{SYSTEM_NAME}}
+  system_full_name: ""      # expansion, e.g. "Aster Pay Interface System"  → {{SYSTEM_FULL_NAME}}
+  brand_shorthand: ""       # 2–4 letters, e.g. "AP"                              → {{BRAND_SHORT}}
+  parent_org:      ""       # optional, e.g. "Aster Financial"                               → {{PARENT_ORG}}
+  domain:          ""       # one phrase, e.g. "fintech" / "healthcare booking"   → {{DOMAIN}}
+  github_owner:    ""       # GitHub user/org for the two repos, e.g. "LuiGiJohn" → {{GITHUB_OWNER}}
+
+# ── DESIGN SYSTEM (the thing the DS context owns) ────────────────────────────
+design_system:
+  figma_source_key:  ""     # APS-source file key.  consume: REQUIRED (read-only ref).
+                            #                        build: leave "" — created during init, paste after.
+                            #                                                            → {{DS_FIGMA_KEY}}
+  library_key:       ""     # published library key (lk-...). consume: REQUIRED. build: fill after first publish.
+                            #                                                            → {{DS_LIBRARY_KEY}}
+  version:           "v0.1" # current published version                            → {{DS_VERSION}}
+  published_date:    ""     # ISO date of that publish, e.g. "2026-05-21"           → {{DS_PUBLISHED_DATE}}
+  fonts:             ""     # exact font families + weights to preload before text ops,
+                            # e.g. "Work Sans (400/500/600/700) + Inter"            → {{FONTS}}
+  token_prefixes:    ["Surface", "Text", "Border", "Icon", "Scale", "Border-Radius", "Border-Width"]
+                            # top-level semantic token namespaces (informational)   → {{TOKEN_PREFIXES}}
+
+# ── CONSUMER (the screens the studio context builds) ─────────────────────────
+consumer:
+  figma_file_key:  ""       # the write-surface file where screens are composed     REQUIRED → {{CONSUMER_FIGMA_KEY}}
+  file_name:       ""       # human label, e.g. "AP-Onboarding-Screens"             → {{CONSUMER_FILE_NAME}}
+  frame:
+    width:   402            # standard device frame width                          → {{FRAME_W}}
+    height:  874            # standard device frame height                         → {{FRAME_H}}
+    bg_token: "Surface/Page"  # background token for a blank screen                 → {{PAGE_BG_TOKEN}}
+
+# ── PROTOTYPE (the usability-validation gate) ────────────────────────────────
+prototype:
+  name:        ""           # kebab-case, e.g. "ap-app-flow"                        → {{PROTOTYPE_NAME}}
+  description: ""           # one line, e.g. "returning-user login → dashboard"     → {{PROTOTYPE_DESC}}
+  analytics:                # env-var names the harness reads (rarely changed)
+    posthog_key_env:  "VITE_POSTHOG_KEY"
+    posthog_host_env: "VITE_POSTHOG_HOST"
+    clarity_env:      "VITE_CLARITY_ID"
+
+# ── REPOS (where the two rendered contexts will live) ────────────────────────
+repos:
+  ds_context:     ""        # e.g. "aps-claude-context"  (the DS-authoring repo)   → {{DS_REPO}}
+  studio_context: ""        # e.g. "aps-studio-context"  (the screens+proto repo)  → {{STUDIO_REPO}}
+
+# ── USER PREFERENCES (carried across every project — edit once, rarely again) ─
+# These are personal working defaults, not project facts. Prefilled; tweak to taste.
+user_preferences:
+  methodology:   "Atomic Design, WCAG 2.2 AA, semantic HTML + ARIA by default"
+  communication: "Lead-to-peer. Skip apologies, filler, hedging. Brief and direct."
+  code_style:    "Clean, exemplary, JSDoc on complex logic. Show diffs for minor fixes."
+  mentorship:    "Mentors junior designers; output should be documentation-worthy."
+  honesty:       "Direct disclosure of constraints, gotchas, limitations. No oversell."
+  format:        "yaml blocks for planning/decisions; inline prose for execution. No tappable buttons."

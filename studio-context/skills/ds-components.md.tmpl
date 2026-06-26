@@ -1,0 +1,42 @@
+# ds-components (read-only mirror)
+
+> 🔒 **READ-ONLY MIRROR of `{{DS_REPO}}/skills/ds-components.md` — do not edit here.**
+> Refresh after each {{SYSTEM_NAME}} publish via:
+> ```
+> cp ../{{DS_REPO}}/skills/ds-components.md skills/ds-components.md
+> ```
+> (then re-add this banner). In build mode this is **empty** until the DS context's first publish.
+> The DS context owns the component catalog; the studio context only consumes published keys.
+
+The {{SYSTEM_NAME}} component catalog — what exists, its published key, its variants — vendored from
+the DS repo so the studio context can instance components without round-tripping. Until populated,
+read keys from the DS repo or a fresh `tools/inventory-snippet.js` run.
+
+---
+
+## Instantiate-by-key convention
+
+Instance by **published component key** via `importComponentByKeyAsync(KEY)` → `main.createInstance()`.
+Keys are 40 hex chars — copy the FULL key from a fresh inventory (truncated → "not found", Gotcha #13).
+`importComponentByKeyAsync` returns the last *published* version; stale consumer instances need a swap
+(Gotcha #20 → use the `rebind` skill).
+
+## Format (matches the DS-side scaffold — populated on refresh)
+
+### Component catalog
+| Component / Variant | Published key | Variants | Notes |
+|---|---|---|---|
+| `Button / Appearance=Primary` (example) | `<40-hex-key>` | 144 | (example) leading `Icon` swap prop |
+
+### Set-level component properties (per component)
+| Property | Type | Default | Notes |
+|---|---|---|---|
+| `Label` (example) | TEXT | "Label" | editable string |
+| `Show Icon` (example) | BOOLEAN | true | toggles the leading icon |
+
+### Common icon / illustration keys
+| Icon | Key |
+|---|---|
+| `close` (example) | `<40-hex-key>` |
+
+> Source of truth: `{{DS_REPO}}/skills/ds-components.md`. Refresh, don't author, here.

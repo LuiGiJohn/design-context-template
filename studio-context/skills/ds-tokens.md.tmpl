@@ -1,0 +1,46 @@
+# ds-tokens (read-only mirror)
+
+> 🔒 **READ-ONLY MIRROR of `{{DS_REPO}}/skills/ds-tokens.md` — do not edit here.**
+> Refresh after each {{SYSTEM_NAME}} publish via:
+> ```
+> cp ../{{DS_REPO}}/skills/ds-tokens.md skills/ds-tokens.md
+> ```
+> (then re-add this banner). In build mode this is **empty** until the DS context's first publish.
+> The DS context owns the token catalog; the studio context only consumes it.
+
+The {{SYSTEM_NAME}} variable / text-style / effect-style catalog, vendored from the DS repo so the
+studio context can bind colors/text/spacing without round-tripping. Bind to **`3. Semantic`** colors
+and **`2. Tokens`** numbers only — see the binding rule below. Until the mirror is populated, look up
+live values from the DS repo or via `tools/inventory-snippet.js`.
+
+---
+
+## The 3-tier taxonomy (the binding rule)
+
+| Tier | Collection | Bind in production? |
+|---|---|---|
+| 1 | `1. Primitives` | ❌ never directly |
+| 2 | `2. Tokens` | only numeric (`Scale/*`, `Border-Radius/*`, `Border-Width/*`) |
+| 3 | `3. Semantic` | ✅ always, for colors (`Surface/*`, `Text/*`, `Icon/*`, `Border/*`) |
+
+Variable IDs are stored as `VariableID:<n>:<m>` — the `VariableID:` prefix is REQUIRED for
+`getVariableByIdAsync` (`skills/figma-gotchas.md` Gotcha #29).
+
+## Format (matches the DS-side scaffold — populated on refresh)
+
+### Critical token keys
+| Token | Variable ID | Resolves to | Use |
+|---|---|---|---|
+| `Surface/Page` | `VariableID:__:_` | white (example) | screen backgrounds (example) |
+
+### Text styles
+| Style | Spec | Key | Use |
+|---|---|---|---|
+| `Title/Screen` | Bold 34/41 (example) | `<40-hex-key>` | page h1 (example) |
+
+### Effect styles
+| Style | Key | Use |
+|---|---|---|
+| `Elevation/Low` | `<40-hex-key>` | subtle card lift (example) |
+
+> Source of truth: `{{DS_REPO}}/skills/ds-tokens.md`. Refresh, don't author, here.

@@ -1,0 +1,187 @@
+# {{SYSTEM_NAME}} Component Authoring Standards
+
+_Examples below reference the original {{SYSTEM_NAME}} system; the patterns are system-agnostic._
+
+DS-fidelity + Figma-optimization rules for **building or editing any {{BRAND_SHORT}} {{SYSTEM_NAME}}
+component** (`{{DS_FIGMA_KEY}}`). Every new/changed component must meet these
+so the library stays optimized, themeable, and consistent. Pairs with
+`skills/ds-components.md` (what exists) + `manifest/manifest.schema.md` (ground truth)
++ `skills/figma-gotchas.md` (API pitfalls).
+
+> **Note:** the "Audit baseline" section below is a real {{SYSTEM_NAME}} snapshot kept as a worked
+> example of how to record an authoring audit; replace it with your own once you run one.
+
+> **Quick gate before publishing any component — the 10-point check:**
+> 1 token-bound · 2 right variant/prop split · 3 auto-layout · 4 nested instances
+> exposed · 5 instance-swaps for variable content · 6 clean icons · 7 text styles ·
+> 8 naming · 9 AA + 44px targets · 10 description/Code Connect + manifest logged.
+
+---
+
+## 1. Variables, tokens & modes
+- **Bind every visible fill / stroke / effect color to a Semantic token** — never a
+  raw hex. Layer order is `1. Primitives → 2. Tokens → 3. Semantic`; **components
+  bind to `3. Semantic` only** (never to a primitive/raw value).
+- **Bind spacing, radius, and sizing to number variables** where the DS provides
+  them (e.g. `Scale/*`, `Border-Radius/*`). Don't hardcode 16/24/etc. when a token exists.
+- **Theme with modes, not duplicate tokens.** Semantic tokens should carry their
+  light/dark values as **variable modes** on the `3. Semantic` collection, so a
+  component themes by mode-switch. Do **not** spin up parallel `*/Inverse` tokens for
+  dark — that's the anti-pattern the current file fell into (see Backlog P1-A).
+- **Set `variable.scopes` explicitly** when creating variables (never leave
+  `ALL_SCOPES`) — e.g. `TEXT_FILL` for text colors, `FRAME_FILL/SHAPE_FILL` for
+  surfaces, `GAP/WIDTH_HEIGHT/CORNER_RADIUS` for numbers.
+- **Gradients can't bind to variables** (Figma limitation) — match the hex to the
+  token value and note it. This is the only sanctioned raw-color exception.
+
+## 2. Variants vs component properties — avoid variant explosion
+The variant count is the **product** of every variant axis's options. Keep it small.
+- **VARIANT axes** only for things that change visual *structure/appearance*:
+  `Appearance`, `Type`, `Size`, `Status`, `State` (when states differ structurally).
+- **BOOLEAN properties** for show/hide and on/off: `Selected`, `Disabled`,
+  `Show Icon`, `Show Divider`, `Show Trailing`. Never make these a variant axis.
+- **INSTANCE_SWAP properties** for swappable content: icons, illustrations, avatars,
+  nested buttons. Seed `preferredValues`.
+- **TEXT properties** for every editable string.
+- **Never make a nested instance's own attribute a top-level variant** — e.g. an
+  `Icon Size` axis multiplies the entire set just to resize a nested glyph. Drive it
+  from the nested icon instead (swap to a sized icon / the icon's own size).
+- **Flag any set > ~24 variants** for review — it almost always hides a
+  collapsible axis (see Backlog P1-B: Button = 144).
+
+## 3. Auto layout
+- **Every container, row, and stack uses auto layout.** Absolute positioning only for
+  true overlays (scrims, decorative glows) via `layoutPositioning='ABSOLUTE'`, and
+  for icon bounding boxes.
+- Use **FILL / HUG** sizing intentionally; set `layoutSizing*='FILL'` **after**
+  `appendChild` (Plugin API rule).
+- Reach for modern AL features where they fit: **min/max width**, **wrap**, and
+  absolute children inside an AL frame.
+- **Anchor optional elements** so toggling `Show X` doesn't collapse/shift siblings.
+
+## 4. Nested instances & exposure
+- **Expose** (`isExposedInstance = true`) any nested instance a consumer will
+  customize — leading/trailing icons, action buttons, avatars, tab items, illustrations
+  — so they can swap/edit it **without detaching** the parent.
+- Bind each nested swappable visual to a **set-level `INSTANCE_SWAP`** prop and expose it.
+- **Re-point nested instances to canonical sets** — no duplicate/orphan main
+  components (a recurring cleanup; see manifest patches `[14,16]`).
+
+## 5. Icons
+- Glyph color = an **`Icon/*` semantic token** (not a `Text/*` token).
+- The icon **`Bounding box` rectangle MUST be transparent (no fill)** — never leave
+  Figma's default `#d9d9d9`. A filled bounding box renders as a stray gray square when
+  the icon is placed/recolored sparsely (see Backlog P1-D).
+- When recoloring an icon, **recolor only the glyph `VECTOR`(s)** — skip the bounding box.
+
+## 6. Text
+- **Bind every text node to a text style** (`Title/*`, `Body/*`, `Caption/*`,
+  `Button/Label-*`) — never raw font family/size/line-height.
+- Text fill = a **`Text/*` token**.
+- Set `textAutoResize` intentionally: `HEIGHT` + `FILL` width to wrap and grow;
+  `WIDTH_AND_HEIGHT` only for genuine single-line labels (it hug-centers in AL).
+
+## 7. Naming
+- Variant axes: clear PascalCase names + readable options (`State=Default`, not `s=0`).
+- Layers: meaningful (`Leading`, `Title`, `Trailing`, `Divider`, `Icon Glyph`), never
+  `Frame 23` / `Rectangle 5`.
+- Component + set names match `aps-components.md` and manifest `keyComponents`.
+
+## 8. Accessibility (bake in, don't bolt on)
+- **WCAG AA contrast**: text ≥ 4.5:1 (normal) / 3:1 (≥24px or bold ≥19px); icons &
+  UI boundaries ≥ 3:1. Check **every State and variant**, not just the default.
+- **Touch targets ≥ 44px** (Fitts). Apply the `workflow_design-qa-sweep` lens
+  (a11y + Fitts + Nielsen + UX-laws) on every new/changed component.
+
+## 9. Handoff — use modern Figma features
+- **Component Description** on every set: what it is, when to use, prop summary.
+- **Dev-mode Annotations** for non-obvious behavior/states.
+- **Code Connect** mappings where engineering consumes the component.
+- **Changelog frame** (in-file) + manifest `patches[]` entry on every change.
+
+## 10. Publish discipline
+- The **Plugin API can't publish** (Critical Rule #1) — a human clicks *Publish
+  library*. Source edits don't reach consumers until republish; `importComponentByKeyAsync`
+  returns the last *published* version.
+- After a republish, **consumer instances can be stuck on a stale cached local main**
+  and won't auto-pull — `swapComponent` them onto the freshly-imported remote (learned
+  on the List-with-Button + Card rollouts).
+
+---
+
+## Audit baseline — 2026-06-09 (32 core components, excl. 78 icons / 20 illustrations)
+
+**Overall:** the library is in good shape — auto-layout is used on all the right
+components, **visible-surface token binding is ~100%** (the apparent gaps were icon
+bounding boxes, see P1-D), and **component descriptions exist on ~all sets**. Token
+system: `1. Primitives` (77), `2. Tokens` (125), `3. Semantic` (88, single `Light` mode).
+The optimization headroom is concentrated below. **Status @ 2026-06-09: P1-D, P2-E, P2-G
+PUBLISHED + verified; P1-C & P2-F revised/deferred; P1-A deferred by owner; P1-B ready.**
+
+### Token-tier (3-tier) audit — 2026-06-17 (PENDING RE-PUBLISH, manifest patches[0])
+Swept all 31 core components, every variant/state, for the rule **"components bind colors to `3. Semantic`"** (+ unbound colors + text styles). **23/31 fully compliant** (incl. Button/Button-Pill/Icon Button @ 342 variants, 100% semantic). **Fixed (value-matched, no visual change):** Card (Amber primitives → `Surface/Warning/Outlined-Tint` + `Border/Warning/Bold`), Bottom Nav FAB, Avatar Initials fill + all rings, Toggle off-knob, Keyboard background + 2 unbound text. **Created `Border/Warning/Bold`** (3.Semantic, alias `Color/Warning/500` #f9aa16, scope STROKE_COLOR) — the recurring gold ring/accent had no semantic home (name pending review). **Still open (judgment calls):** Avatar Initials text + Logo brand + Status Bar On-Action bind to **remote** tokens (Logo/Status Bar likely intentional); Passcode pressed bg has no exact semantic surface. **Text-style gaps** (separate dimension): Keyboard 44/44 numpad labels, Avatar 2/3 Initials — flagged for a follow-up. Lesson: tier ≠ "is it bound" — check the *collection* a color resolves through; `Color/*` names (Warning/Amber/Neutral/Primary) are `1/2`-tier, role names (`Surface/Border/Text/Icon`) are `3. Semantic`.
+
+### Prioritized optimization backlog (status @ 2026-06-09)
+**P1 — high impact**
+- **A. Variable modes for theming.** ⏸️ **DEFERRED by owner** (no dark mode in product yet).
+  `3. Semantic` has a single `Light` mode; dark is bolted on via duplicate `Text/Inverse`
+  / `Surface/Brand-Elevated` / `Icon/Inverse` tokens (manifest patches `2026-06-01`). When
+  dark ships: add a **Dark mode** to `3. Semantic`, move dark values there, retire the
+  parallel inverse tokens. Biggest "current-Figma-feature" win.
+- **B. Button variant explosion.** 🔜 **READY — not yet executed (high blast radius).**
+  `Button` (144) & `Button - Pill` (144) = `Appearance(3)×Type(2)×Size(2)×State(3)×Icon
+  Size(4)`. **`Icon Size` should not be a variant axis** — drive icon size from the button
+  `Size` instead. Collapsing → **144 → 36** each. Deletes 108 published variants used by 3
+  consumer files → stage it with before/after + republish + re-test (not an unattended sweep).
+- **C. Boolean-able variant axes.** ❌ **REVISED — keep as variants.** On inspection these
+  axes drive *appearance/color* (`Toggle State` = knob position/structural; `Disabled` /
+  `Selected` = color), which Figma booleans can't apply (booleans only toggle
+  visibility/instance-swap). Converting = hacky overlay rebuild, not a clean win. Reco retracted.
+- **D. Icon bounding boxes filled `#d9d9d9`.** ✅ **DONE + PUBLISHED + VERIFIED 2026-06-09.**
+  Cleared the default-gray fill on 85 icon bounding boxes → transparent; verified live via
+  fresh import (mobile icon `fills=[]`). Standard: icon bounding boxes carry **no fill**;
+  recolor only glyph `VECTOR`s.
+
+**P2 — medium impact**
+- **E. Expose nested instances.** ✅ **DONE + PUBLISHED + VERIFIED 2026-06-09** (Bottom Nav
+  imports with 4 exposed Tab Bar Items; Card Icon Glyph exposed). Exposed Bottom Nav 16 Tab
+  Bar Items, Tab Bar Item icon, Card Icon Glyph, Dialog Illustration + Action (Bot Nav Action
+  was already exposed; Dialog action buttons can't be exposed — nested in the exposed Action).
+- **F. Instance-swap gaps.** ⏸️ **DEFERRED.** `Avatar` Type=Icon content is a baked-in
+  2-ellipse silhouette (not an instance); adding an Icon/Image swap means restructuring it
+  and changing the default look → do as a deliberate design pass. Type=Image already carries
+  content via image fill; Type=Initials via the Initials text prop.
+- **G. Component descriptions / Code Connect.** ✅ **MOSTLY DONE 2026-06-09.** Descriptions
+  already existed on ~all sets (good); filled the 2 missing (List Item, Chip). **Code Connect
+  still TODO** — needs the consuming codebase (not in this repo).
+
+**P3 — low / hygiene**
+- `Bot Nav Action` rep variant reads `layoutMode=NONE` — verify all `Type`s use auto
+  layout (containers must).
+- Leaf graphics with no AL/props (`Spinner`, `Keyboard`, `Status Bar` internals,
+  `Progress Tracker`, `Home Indicator`, `Face ID`, `Scroll Edge Effect`) — acceptable;
+  no action.
+- `Dialog` illustration container fill `#ffffff` and `Bottom Nav` `Gift Animated`
+  `#000000` — confirm intentional vs. leftover.
+
+### Per-component flags (concise)
+| Component | Variants | Notable |
+|---|---|---|
+| Button / Button - Pill | 144 ea | P1-B variant explosion (Icon Size axis); icon bbox |
+| Icon Button | 54 | review State×Size variant count; icon bbox |
+| Toggle / Toggle List Item | 8 / 4 | P1-C booleans |
+| Tab Bar Item | 2 | P1-C `Selected`→boolean; expose nested icon |
+| Avatar | 9 | P2-F add Icon/Image swap |
+| Bottom Nav | 4 | P2-E expose tab items; `Gift Animated` #000 |
+| Dialog / Action | 1 / 3 | P2-E expose action buttons; illo container #fff |
+| Card | 3 | P2-E expose icon slot (Show Icon shipped 2026-06-04) |
+| Top Nav | 2 | ✅ exemplar — 3 exposed, B5 T2 S2 props |
+| List Item | 4 | ✅ exemplar — 2 exposed, B3 T4 S2 props |
+| Text Field / Input Amount | 4 / 4 | ✅ strong props + binding |
+| Checkbox / Radio / *List Item | 3–4 | ✅ 100% bound; `State` could trim |
+| Bot Nav Action | 4 | P3 verify auto-layout on all Types |
+
+> **Note — two earlier `knownGaps` were wrong** (corrected in the manifest):
+> a radio/selection **List Item DOES exist** (`Radio List Item` / `Checkbox List Item`
+> / `Toggle List Item`, Selection page), and the **illustration set is larger** than
+> first seen (incl. `Waiting`, `ID Verification`, `Network`, `Complete`, `Upgrade`).

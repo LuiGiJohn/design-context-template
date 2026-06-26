@@ -1,0 +1,153 @@
+# ds-tokens
+
+**Version**: {{DS_VERSION}} (post-publish {{DS_PUBLISHED_DATE}})
+**{{SYSTEM_NAME}} source**: `{{DS_FIGMA_KEY}}`
+
+> ⛔ **TODO — SCAFFOLD, NOT POPULATED.** This is the per-project variable / text-style / effect-style
+> catalog for {{SYSTEM_NAME}}. It does NOT ship with token data — every system's tokens differ.
+>
+> **Populate it by running `tools/inventory-snippet.js`** inside a `use_figma` call against
+> `{{DS_FIGMA_KEY}}` after each publish, then transcribe the live variables / styles into the tables
+> below using the documented format. Re-run + reconcile after every {{SYSTEM_NAME}} republish so this
+> doc never drifts from the file (cross-check with `tools/doc-drift-checker.py`).
+>
+> Delete this banner once the first real entries are in. Keep one example row per table as a format
+> reference if you like, clearly marked `(example)`.
+
+Complete reference for {{SYSTEM_NAME}} variables, text styles, and effect styles. Use this skill
+before binding any color, text, or shadow in {{SYSTEM_NAME}} or any consumer file.
+
+---
+
+## The 3-tier taxonomy (the binding rule)
+
+{{SYSTEM_NAME}} tokens live in three variable collections, layered. **Components bind to tier 3 only.**
+
+| Tier | Collection | Mode(s) | Role | Bind in production? |
+|---|---|---|---|---|
+| 1 | `1. Primitives` | `Value` | raw values — full color ramps, spacing/typography primitives | ❌ never bind directly |
+| 2 | `2. Tokens` | `Value` | numeric/sizing tokens with semantic naming (`Border-Radius/*`, `Border-Width/*`) + aliased color tokens | only numeric tokens (no Semantic tier exists for numbers) |
+| 3 | `3. Semantic` | `Light` (+ `Dark` when added) | role-named colors (`Surface/*`, `Text/*`, `Icon/*`, `Border/*`) | ✅ **always** for colors |
+
+**Rules:**
+- Bind every visible fill/stroke color to a **`3. Semantic`** token — never a primitive or raw hex.
+  The clue: role names (`Surface/Border/Text/Icon`) are tier 3; color-ramp names (`Color/Primary/700`)
+  are tier 1/2.
+- Bind spacing / radius / sizing to **`2. Tokens`** number variables (`Scale/*`, `Border-Radius/*`,
+  `Border-Width/*`) — numbers have no Semantic tier.
+- Theme with **variable modes** on `3. Semantic` (add a `Dark` mode), not parallel `*/Inverse` tokens.
+- Variable IDs are stored as `VariableID:<n>:<m>` (e.g. `VariableID:26:24`). The `VariableID:` prefix is
+  REQUIRED for `getVariableByIdAsync` — see `figma-gotchas.md` Gotcha #29.
+
+---
+
+## Variable collections
+
+Record the live collection counts here (from the inventory snippet). Format:
+
+### 1. Primitives (<N> variables, 1 mode "Value")
+- `Color/*` (<n>): the color ramps
+- `Scale/*` (<n>): spacing/sizing primitives
+- `Typography/*` (<n>): font primitives
+
+### 2. Tokens (<N> variables, 1 mode "Value")
+- `Border-Radius/*` (<n>) · `Border-Width/*` (<n>) · aliased `Color/*` (<n>) · `Typography/*` (<n>)
+
+### 3. Semantic (<N> variables, mode(s): Light[, Dark])
+- `Surface/*` (<n>) · `Text/*` (<n>) · `Icon/*` (<n>) · `Border/*` (<n>)
+
+### Collection IDs (for variable lookups)
+
+| Collection | ID |
+|---|---|
+| 1. Primitives | `VariableCollectionId:__:_` (example) |
+| 2. Tokens | `VariableCollectionId:__:_` (example) |
+| 3. Semantic | `VariableCollectionId:__:_` (example) |
+
+---
+
+## Critical token keys (Semantic)
+
+One table per family. **Column format: Token | Variable ID | Resolves to | Use.**
+
+### Surface tokens
+| Token | Variable ID | Resolves to | Use |
+|---|---|---|---|
+| `Surface/Page` | `VariableID:__:_` | white (example) | screen backgrounds (example) |
+
+### Text tokens
+| Token | Variable ID | Resolves to | Use |
+|---|---|---|---|
+| `Text/Default` | `VariableID:__:_` | #293234 (example) | primary content (example) |
+
+### Icon tokens
+| Token | Variable ID | Resolves to | Use |
+|---|---|---|---|
+| `Icon/Default/Default` | `VariableID:__:_` | — (example) | default icon vector fill (example) |
+
+### Border tokens
+| Token | Variable ID | Resolves to | Use |
+|---|---|---|---|
+| `Border/Default` | `VariableID:__:_` | #DBE4E7 (example) | default 1px stroke (example) |
+
+### Numeric tokens (Scale / Border-Radius / Border-Width)
+| Token | Variable ID | Value | Use |
+|---|---|---|---|
+| `Border-Radius/md` | `VariableID:__:_` | 8 (example) | default form fields (example) |
+| `Scale/400` | `VariableID:__:_` | 16 (example) | standard padding + itemSpacing (example) |
+
+---
+
+## Text styles (<N>)
+
+**Column format: Style | Spec | Key | Use.** Group by family (Title / Body / Caption / Button / Link / Display).
+The key is the 40-hex hash before the comma in `style.id` — see `figma-gotchas.md` Gotcha #12.
+
+| Style | Spec | Key | Use |
+|---|---|---|---|
+| `Title/Screen` | Bold 34/41 / -1px (example) | `<40-hex-key>` | page h1 (example) |
+
+## Effect styles (<N>)
+
+| Style | Key | Use |
+|---|---|---|
+| `Elevation/Low` | `<40-hex-key>` | subtle card lift (example) |
+
+---
+
+## Binding patterns (system-agnostic — keep)
+
+```javascript
+// Color variable binding (needs a fallback paint — Gotcha #11)
+function bindFill(node, variable) {
+  const modeId = Object.keys(variable.valuesByMode)[0];
+  const val = variable.valuesByMode[modeId];
+  const fallback = (val && val.r !== undefined) ? val : { r: 0, g: 0, b: 0 };
+  node.fills = [figma.variables.setBoundVariableForPaint(
+    { type: "SOLID", color: fallback }, "color", variable
+  )];
+}
+
+// Numeric binding — note the API field-name inconsistency
+node.setBoundVariable("paddingTop", scale400);
+node.setBoundVariable("topLeftRadius", borderRadiusMd);   // NOT radiusTopLeft
+node.setBoundVariable("strokeTopWeight", borderWidthSm);  // NOT topStrokeWeight
+
+// Text style binding (async)
+await textNode.setTextStyleIdAsync(style.id);
+```
+
+## Honest binding hierarchy
+
+1. **Prefer Semantic over Token over Primitive** — always.
+2. Colors → the role token that matches the surface (text on `Text/*`, fills on `Surface/*`, etc.).
+3. Numbers → `Scale/*` (padding/gap), `Border-Radius/*` (radii), `Border-Width/*` (stroke weights).
+4. Never ship literal hex or literal numbers where a token exists.
+
+## Known gaps
+
+Track tokens you needed but {{SYSTEM_NAME}} doesn't have yet, plus the interim workaround. Format:
+
+| Need | Workaround | Future {{SYSTEM_NAME}} addition |
+|---|---|---|
+| (example) bold body 14/22 | bind Body/Default + inline SemiBold override | add `Body/Default-Bold` style |

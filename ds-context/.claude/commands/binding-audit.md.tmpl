@@ -1,0 +1,12 @@
+---
+description: Run the binding-completeness audit on a {{SYSTEM_NAME}} component
+argument-hint: [component / component_set / node-id]
+---
+Use the **ds-steward** subagent to run the binding audit on $ARGUMENTS:
+all visible fills + strokes bound, non-zero radii bound to Border-Radius/*, padding and
+spacing bound to Scale/*, stroke weights bound to Border-Width/*, every text node has a
+textStyleId. `clone()` does not preserve bindings — re-bind after cloning.
+
+Target zero unbound elements. This is the publish gate (Critical Rule #9) — report the
+count and block publish if it is non-zero. It enforces §6 Rams "thorough to the last detail"
++ Weinschenk error-prevention: an unbound element is a defect that ships to every consumer.

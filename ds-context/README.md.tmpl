@@ -1,0 +1,183 @@
+# {{DS_REPO}}
+
+Persistent context repo for Claude sessions working on the {{SYSTEM_NAME}} design system ({{PROJECT_NAME}} / {{PARENT_ORG}} {{DOMAIN}}).
+
+> **Scope: design system only.** Tokens, styles, components, variants, bindings, the manifest, skills
+> docs, publish, drift, and the spiels mechanism. Screen building + coded prototypes live in a
+> **separate context/repo** (`{{STUDIO_REPO}}`) that consumes the published {{SYSTEM_NAME}} library.
+
+## Why this repo exists
+
+Working with Claude across multiple sessions requires re-establishing context each time: which design system, which Figma file IDs, which conventions, which working preferences. Manual copy-paste is fragile and grows stale.
+
+This repo solves that. A single bootstrap URL gives Claude everything it needs.
+
+## How it works
+
+1. Open this repo in **Claude Code** — it loads `CLAUDE.md` (→ `CONTEXT.md`) automatically on startup.
+2. `CONTEXT.md` + `CLAUDE.md` carry the project facts, skill table, and critical rules; the `.claude/`
+   **agents** (`ds-steward`, `component-designer`, `brand-designer`) + **commands**
+   (`/design-system-check`, `/binding-audit`, `/drift-check`) carry the workflows.
+3. Load `skills/*.md` per task and delegate to the right agent — no copy-paste, no scenario files.
+
+When {{SYSTEM_NAME}} changes (new tokens, component updates, etc.), update the relevant skill files +
+manifest here; the next session picks them up automatically. (`CONTEXT.md` can also be pasted into a
+Claude.ai chat as a reference if you ever work outside Claude Code.)
+
+## Repo structure
+
+```
+{{DS_REPO}}/
+├── CONTEXT.md                       ← shared project facts, skill table + critical rules (read first)
+├── CLAUDE.md                        ← Claude Code reads this on startup (if present)
+├── README.md                        ← this file
+├── DESIGN.md                        ← design principles + benchmarks (shared ground truth)
+├── AGENTS-HANDOFF.md                ← agent orchestration model
+├── skills/
+│   ├── ds-tokens.md               ← variables, text styles, effect styles, VariableIDs
+│   ├── ds-components.md            ← component keys, variants, conventions
+│   ├── figma-gotchas.md        ← Plugin API traps and workarounds (NON-NEGOTIABLE)
+│   ├── component-authoring-standards.md  ← component authoring gate
+│   └── spiels.md               ← i18n string variable tokens
+├── manifest/
+│   └── manifest-{{DS_VERSION}}.json     ← current canonical baseline (older versions kept for diff)
+├── tools/
+│   ├── inventory-snippet.js    ← Figma plugin code to dump current {{SYSTEM_NAME}} state
+│   └── doc-drift-checker.py    ← compare manifest vs actual (run via terminal)
+├── docs/
+│   └── sessions/                    ← chronological session notes (archive)
+└── .claude/                         ← Claude Code agents + commands (the workflows)
+    ├── agents/                      ds-steward.md · component-designer.md · brand-designer.md
+    └── commands/                    design-system-check · binding-audit · drift-check
+```
+
+## Starting a session
+
+**Claude Code (primary):** just open this repo — `CLAUDE.md` + `CONTEXT.md` load on startup and the
+`.claude/` agents + commands are available. Tell Claude the task; it loads the matching `skills/*.md`
+and delegates to `ds-steward` / `component-designer` / `brand-designer`.
+
+**Claude.ai chat (optional reference):** paste this to load the context as reference. The workflows
+live in the agents (which Claude.ai doesn't run), so drive the work manually from the skills:
+
+```
+Load my project context from:
+https://raw.githubusercontent.com/{{GITHUB_OWNER}}/{{DS_REPO}}/main/CONTEXT.md
+
+I'll tell you what we're working on next.
+```
+
+Private repo: append `?token=YOUR_PAT` (a GitHub PAT with `repo` scope) to the raw URL. Note: a
+PAT-in-URL appears in chat history — for higher security use Claude Projects with manual file uploads.
+
+## Roster
+
+| Agent | Owns | Fires on |
+|---|---|---|
+| `ds-steward` | variables/styles authoring, token architecture, governance, the binding-audit GATE, publish hygiene, drift, manifest, skills/docs of record, spiels mechanism, lookup | "add a token/style", "audit bindings", "publish", "check drift", "update the skills", "what's the token/key for X?" |
+| `component-designer` | component / component_set construction, variants, states, layout, visual craft, binding to tokens, a11y-at-build | "build/modify the X component", "add a variant", "fix the states/layout", "expose this slot" |
+| `brand-designer` | identity direction, illustration style, imagery, photography system, video, marketing creative | "brand direction", "illustration style", "grade these photos", "set up the render" |
+
+Plus three thin slash commands that delegate to `ds-steward`: `/design-system-check`,
+`/binding-audit`, `/drift-check`.
+
+## Team setup (onboarding a teammate)
+
+The agents and commands are **project-scoped** — committed under `.claude/` in this repo — so there's
+nothing to install or copy. Anyone who clones the repo and opens Claude Code from inside it gets the
+3 agents, the 3 slash commands, `CLAUDE.md`, and the `skills/` docs automatically.
+
+**Each teammate, once:**
+
+1. **Install Claude Code** ([claude.com/claude-code](https://claude.com/claude-code)).
+2. **Clone the repo and open Claude Code from inside it:**
+   ```bash
+   git clone https://github.com/{{GITHUB_OWNER}}/{{DS_REPO}}.git
+   cd {{DS_REPO}}
+   claude
+   ```
+   On startup Claude Code auto-loads `CLAUDE.md` and auto-discovers the `.claude/` agents
+   (`ds-steward`, `component-designer`, `brand-designer`) + commands (`/design-system-check`,
+   `/binding-audit`, `/drift-check`). No setup step — they just appear.
+3. **Connect the MCP servers** the agents rely on (these are per-person, per-machine — they are *not*
+   stored in the repo):
+   - **Figma** — required for all source work (`use_figma`). The teammate needs edit access to the
+     {{SYSTEM_NAME}} source file `{{DS_FIGMA_KEY}}`, and the Figma Desktop Bridge running.
+   - **GitHub** — to commit context updates back.
+   - Keep it minimal: connect only Figma + GitHub (+ Notion if briefs live there). Idle connectors
+     burn context tokens and widen the prompt-injection surface.
+
+**What does *not* travel with the repo (by design):**
+
+- `.claude/settings.local.json` — personal permission allowlist + local config. Each person builds
+  their own; it's intentionally uncommitted.
+- MCP connections — set up per machine (step 3).
+
+**Unchanged for the whole team:** only a **human can click "Publish Library"** in the Figma UI
+(Critical Rule #1 — the Plugin API cannot publish). Source edits don't reach consumers until someone
+publishes. Plan Mode is the hard gate before any source write or publish.
+
+### Teammates without Claude Code (Claude.ai chat / free tier)
+
+Claude Code — and therefore the agents + slash commands — needs a Pro or Max plan. A teammate on the
+free tier, or who only uses the Claude.ai web chat, can still use this repo as a **reference** and drive
+the work by hand:
+
+1. In a Claude.ai chat, load the context — paste the `CONTEXT.md` raw-URL prompt from
+   [*Starting a session*](#starting-a-session) above.
+2. Open the relevant `skills/*.md` for the task and follow it manually. The agents don't execute in
+   chat, so *you* play the `ds-steward` / `component-designer` / `brand-designer` roles — use
+   [`AGENTS-HANDOFF.md`](AGENTS-HANDOFF.md) as the playbook for the build → audit → publish seam.
+3. Writing to the Figma source still needs the **Figma connector + Desktop Bridge**, and the same
+   human-only Publish rule applies. Without that connection, chat is **read-only**: great for looking
+   up tokens/keys/specs, reviewing, and drafting copy — not for mutating the source.
+
+## Updating the context
+
+When {{SYSTEM_NAME}} changes happen:
+
+1. Update the relevant `skills/*.md` file(s)
+2. If tokens/styles/components changed, regenerate `manifest/manifest-vX.X.json`:
+   - Run `tools/inventory-snippet.js` in a Figma `use_figma` call
+   - Save output as `manifest/manifest-vX.X.json` (new version) or replace existing
+3. Update the version number in `CONTEXT.md` (and `CLAUDE.md`) when a new {{SYSTEM_NAME}} publish happens
+4. For mid-version fixes (no new publish, but spec correction), add a `patches[]` entry to the current manifest with date, scope, and gotcha cross-reference.
+5. Run the binding audit on any new component built via `use_figma` — target zero unbound elements before publish
+6. `git commit && git push`
+7. Next Claude session sees the updates automatically
+
+## Updating workflows
+
+Workflows live in the `.claude/` agents (and the thin `.claude/commands/` that only delegate to them).
+Edit the agent — never duplicate its logic into a command (that re-creates the drift this repo exists
+to kill). See `AGENTS-HANDOFF.md` for the orchestration model.
+
+## Drift detection
+
+After each {{SYSTEM_NAME}} publish:
+
+```bash
+# 1. Run the inventory snippet in Figma against the {{SYSTEM_NAME}} source
+#    Save output as inventory-actual.json
+
+# 2. Compare against baseline manifest
+python tools/doc-drift-checker.py manifest/manifest-{{DS_VERSION}}.json inventory-actual.json
+
+# 3. Script reports missing/extra/drift, exits 0 (clean) or 1 (drift)
+```
+
+## The boundary with {{STUDIO_REPO}}
+
+By design, this repo is **design-system only**. Screen creation + live prototyping live in the separate
+**`{{STUDIO_REPO}}`**: composing {{SYSTEM_NAME}} into consumer screens (the consumer file
+`{{CONSUMER_FIGMA_KEY}}`), the UX definition that precedes it (flows/IA/specs), and coded prototypes for
+usability testing.
+
+**Handoff across the boundary:** `ds-steward` publishes {{SYSTEM_NAME}} + updates `skills/` + `manifest/`;
+the studio context consumes the published library to build. A {{SYSTEM_NAME}} gap found while building a
+screen comes back here as a tokenization/component request — `ds-steward` + `component-designer` build
+and publish it, the screen context waits or stubs. `DESIGN.md` is shared ground truth both repos read.
+
+## License
+
+Internal {{PARENT_ORG}} {{DOMAIN}} use. Not for public distribution unless specifically authorized.

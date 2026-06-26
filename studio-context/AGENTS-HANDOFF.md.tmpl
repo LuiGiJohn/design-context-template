@@ -1,0 +1,220 @@
+# {{SYSTEM_NAME}} Screen-Creation Agents — Claude Code Handoff
+
+Orchestration layer for the {{SYSTEM_NAME}} **screen-creation** role agents. This context revolves around
+**building consumer screens + coded prototypes** by *consuming* the published {{SYSTEM_NAME}} library. The
+**design system itself lives in a separate context** (`{{DS_REPO}}`). Complements — does not
+replace — `CONTEXT.md` / `CLAUDE.md` (project facts + working preferences) and `DESIGN.md` (design
+principles + benchmarks, shared with the DS context).
+
+---
+
+## Install
+
+`.claude/` (the `ux-designer` + `ui-designer` agents and the `/design-review`, `/consumer-audit`
+commands) and `DESIGN.md` are **committed to this repo** — a fresh clone already has the roster, no
+copy step. (`/agents` opens an interactive panel inside a terminal Claude Code session to verify.)
+
+The design-system roster (`ds-steward`, `component-designer`, `brand-designer`, `/design-system-check`,
+`/binding-audit`, `/drift-check`) is **not here** — it lives in `{{DS_REPO}}`.
+
+---
+
+## The organizing principle — define before you build, compose don't reinvent
+
+Two **core** roles drive the pipeline, plus two **supporting** roles (an independent reviewer and a
+migrator), each owning a distinct **write-surface** and **moment in the pipeline**, so they never collide.
+
+| Role | Write surface | Owns (object type) |
+|---|---|---|
+| `ux-designer` | SPECS only (markdown/docs, FigJam-level flow diagrams) | flows · IA · journeys · state matrices · interaction + a11y behavior specs · acceptance criteria · functional microcopy |
+| `ui-designer` | CONSUMER Figma file `{{CONSUMER_FIGMA_KEY}}` (screen frames, layout, composition, states) | pixel-perfect, system-compliant screens composed from {{SYSTEM_NAME}} · build-time design-review self-check · consumer drift sweeps |
+| `flow-reviewer` | read-only (review output) | INDEPENDENT heuristic evaluation of screens + flows — runs the `ux-flow-review` canon; the expert-review gate |
+| `data-analyst` | read-only (analysis output) | EMPIRICAL validation — turns prototype analytics into benchmarked evidence (the `usability-analytics` canon); feeds `ux-designer` |
+| `consumer-migrator` | CONSUMER file(s) (instance swaps + override re-application) | propagating a {{SYSTEM_NAME}} publish across consumers — runs the `rebind` procedure; confirms changes are consumed |
+
+**Mental model:** `ux-designer` defines the right thing (what + why) → `ui-designer` builds it right
+(compose {{SYSTEM_NAME}}, pixel fidelity + system compliance) → the screens are **usability-validated via a
+coded prototype** → the **validated** screens hand off to product + engineering / go live. A {{SYSTEM_NAME}}
+gap found mid-build routes to the **DS context** (`ds-steward` / `component-designer`) → they
+tokenize/build/publish → this context consumes the published result.
+
+---
+
+## Roster
+
+| Agent | Owns | Fires on |
+|---|---|---|
+| `ux-designer` | flows, IA, state matrices, interaction/a11y specs, research synthesis, acceptance criteria, functional microcopy | "plan the UX for X", "map the flow", "what states does this need", "write the spec", "synthesize this research", "what should this error/empty state say" |
+| `ui-designer` | composing {{SYSTEM_NAME}} into pixel-perfect consumer screens, build-time design-review self-check, consumer-file drift sweep | "build/recreate the X screen", "compose this flow in Figma", "sweep the consumer file for drift" |
+| `flow-reviewer` | INDEPENDENT heuristic evaluation of screens + flows (the `ux-flow-review` canon) | "review this screen/flow", "heuristic evaluation", "is this usable / AA-compliant", "evaluate this journey" |
+| `data-analyst` | turning prototype analytics into screen-validation evidence (the `usability-analytics` canon) | "analyze the usability data", "what does the data say", "benchmark SEQ / task success / time-on-task", "where are users dropping off" |
+| `consumer-migrator` | propagating a {{SYSTEM_NAME}} publish across consumer files (the `rebind` procedure) | "migrate the consumer onto the new X", "the {{SYSTEM_NAME}} update shipped — sweep the consumer", "confirm the publish is consumed" |
+
+**Shared building blocks** — reusable pieces every relevant role loads, so behavior never drifts:
+- **`ux-flow-review` skill** = the single heuristic-evaluation canon (5 frameworks + {{DOMAIN}} + WCAG
+  2.2 AA). `ui-designer` (self-check), `flow-reviewer` (gate), `/design-review` all load it.
+- **`usability-analytics` skill** = the empirical-validation canon (metrics + UX benchmarks +
+  triangulation + stats caution). `data-analyst` runs it; `ux-designer` validates against its verdicts.
+  Expert review + empirical data are complementary, not redundant.
+- **`rebind` skill** = the consume-verification procedure. `consumer-migrator` runs it across files.
+
+**Quality gate (the delivery seam)** — `ui-designer` builds incrementally, render-verifying each
+phase, then runs **two Figma gates at delivery**: the **design-review self-check** (its build-time
+application of the `ux-flow-review` canon — zero blockers) AND the **Gotcha #27 binding audit** on any
+new frame built outside {{SYSTEM_NAME}} instances — zero unbound. Then **`flow-reviewer` runs the same canon
+independently** as the usability gate (a fresh evaluator catches what the builder rationalized away).
+A screen is not done until all pass.
+
+**Usability-validation gate (required, before handoff).** The Figma gates verify *fidelity +
+compliance*; they do not prove the design *works for users*. So every flow bound for product +
+engineering is first **usability-tested as a coded prototype** (`usability-prototype`) — cohort
+separation, Clarity heatmaps, PostHog time-on-task, post-task SEQ. Task success / time-on-task / SEQ
+must clear before handoff; a failure routes back to `ux-designer` / `ui-designer`, not forward. This
+is a gate, not an optional extra — designs do not go live or reach engineers unvalidated.
+
+---
+
+## Delegation map
+
+| User says something like… | Route to |
+|---|---|
+| "Plan the UX for X" · "map the flow" · "what states does this need" · "write the spec" | `ux-designer` |
+| "Synthesize this research" · "what should this error/empty state say" | `ux-designer` |
+| "Build / recreate the X screen" · "compose this flow in Figma" | `ui-designer` (runs its design-review self-check at plan + delivery) |
+| "Review this screen/flow" · "heuristic evaluation" · "is this AA / usable?" | `flow-reviewer` (`/design-review`) |
+| "Sweep the consumer file for drift / migration opportunities" | `ui-designer` (`/consumer-audit`) |
+| "Relayout / auto-section the screens" · "create sections per flow" · "organize the file by flow" | `ui-designer` (`/relayout`, runs `flow-layout`) |
+| "Migrate the consumer onto the new X" · "the {{SYSTEM_NAME}} update shipped — propagate it" · "confirm it's consumed" | `consumer-migrator` (`/rebind`) |
+| "Analyze the usability data" · "what does the data say" · "benchmark SEQ / task success" · "where are users dropping off" | `data-analyst` (`/usability-report`) |
+| "Build a coded prototype" · "instrument this for usability testing" | `usability-prototype` skill / `usability-prototype-builder` agent |
+| "Add a token/component" · "{{SYSTEM_NAME}} is missing X" · "publish {{SYSTEM_NAME}}" | **separate `{{DS_REPO}}`** — file the gap, don't build it here |
+| Ambiguous | ask which surface; don't guess |
+
+---
+
+## The pipeline (this context's slice)
+
+```yaml
+screen_creation_pipeline:
+  1_ux:      define flows + state matrix + acceptance criteria + functional copy (ux-designer)
+  2_gap?:    new pattern/component needed? → file a request to the DS context; wait or stub
+  3_ui:      compose {{SYSTEM_NAME}} into the screen; build incrementally, render-verify each phase (ui-designer)
+  4_ui:      Figma gates — design-review self-check (zero blockers, ux-flow-review canon) + Gotcha #27 (zero unbound)
+  4b_review: INDEPENDENT heuristic evaluation — flow-reviewer runs the ux-flow-review canon as the gate
+  5_proto:   build + instrument the coded prototype; run the usability test (usability-prototype)
+  6_analyze: data-analyst benchmarks the behavior (usability-analytics) → validation evidence
+  6b_validate: usability GATE — ux-designer validates screens vs the evidence (success/time/SEQ/drop-off); pass → handoff
+  7_handoff: hand the VALIDATED screens to the product team + engineers → go live
+  feedback:
+    ui_to_ds:   "{{SYSTEM_NAME}} gap found while building" → ds-steward + component-designer build + publish it
+    ux_to_ds:   "new interaction pattern needs a component" → DS context, before ui-designer builds
+    review_back: flow-reviewer finds a blocker → back to ux-designer/ui-designer, never forward
+    data_back:  data-analyst invalidates a screen → back to ux-designer/ui-designer; inconclusive → re-test
+    proto_to_ux: usability test surfaces a problem → back to ux-designer/ui-designer before handoff
+    ds_to_here: "{{SYSTEM_NAME}} republished" → refresh the read-only skill mirrors, THEN run consumer-migrator
+                (rebind) to swap stale instances onto the fresh main + verify it's actually consumed
+```
+
+> **Consume-verification loop (the point of `rebind` + `consumer-migrator`):** a DS publish is
+> not "used" until consumer instances are swapped onto the fresh main — they cache old layout until
+> then (Gotcha #20). After any publish that affects screens in scope, run `/rebind` (or the skill
+> interactively) so we KNOW the change propagated; the per-file table with `0 unbound` + verified is
+> the proof. A bad freshly-published main is a DS gap, not a rebind — route it back.
+
+## Heuristic canon (DESIGN.md §6, applied at the SCREEN + FLOW layer)
+
+The DS context applies the §6 frameworks at the system/component layer; **this** context owns the
+screen- and flow-level slices that the DS context explicitly defers:
+
+| Pipeline step | §6 heuristics that govern it | Applied as a concrete check |
+|---|---|---|
+| **1 · define UX** (`ux-designer`) | Shneiderman (closure · locus of control) · Tognazzini (anticipation · autonomy · explorability) · Gerhardt-Powals (automate workload) | Complete state matrix (default/loading/empty/error/success); user keeps control (back/cancel/undo, flow exits); minimize recall + cognitive load per step. |
+| **2 · gap routing** | Weinschenk (System Capabilities) | A missing pattern is a DS request, not a hand-built one-off — the published library is the meaningful aid. |
+| **3 · build** (`ui-designer`) | Gestalt (proximity/similarity/common-region/figure-ground) · hierarchy (one primary action) · Laws of UX (Fitts · Hick · Miller · Jakob) · Weinschenk (**Navigation**) | Compose {{SYSTEM_NAME}}; one primary CTA per screen in the thumb-reach zone on {{FRAME_W}}×{{FRAME_H}}; familiar {{DOMAIN}} patterns; chunk fields. |
+| **4 · review gate** (`ui-designer`) | Nielsen 10 (error PREVENTION weighted for {{DOMAIN}} · user control · consistency · plain-language recovery) · Weinschenk (**Error Prevention · User Feedback**) · WCAG 2.2 AA | Block bad input before submit; irreversible actions gated by Dialog confirmation; AA contrast + 44×44 targets + visible focus + logical order. |
+| **5 · prototype + usability test** | Tognazzini (efficiency · visible navigation) · Gerhardt-Powals (meaningful aids) | REQUIRED before handoff: instrument task success + time-on-task + SEQ; cohort separation; heatmaps; reduced-motion respected. |
+| **6 · analyze + validate** (`data-analyst` → `ux-designer`) | Gerhardt-Powals (reduce uncertainty · fuse data) · Tognazzini (efficiency) · Weinschenk (User Feedback) | Benchmark behavior vs UX norms (success ≈78%+, SEQ ≥5.5, time vs target, drop-off); triangulate quant + Clarity; validate / invalidate / re-test with stated confidence. Failure routes back, not forward. |
+| **7 · handoff** | Weinschenk (System Capabilities · User Feedback) | Only *data-validated* screens reach product + engineering / go live. |
+| _DS context — NOT applied here_ | Rams · Shneiderman (consistency/memory) · Gerhardt-Powals (data-fusion) at the **token/component** layer | Token + component construction — applied where {{SYSTEM_NAME}} is authored, not where screens are built. |
+
+## Boundary calls
+
+```yaml
+compose_vs_build:  ui-designer COMPOSES {{SYSTEM_NAME}} instances · never hand-builds a {{SYSTEM_NAME}} equivalent.
+                   A row / amount field / inner-screen header / dialog → use the {{SYSTEM_NAME}} component
+                   (List Item / Input Amount / Top Nav State=Screen / Dialog) or file a gap.
+specs_vs_pixels:   ux-designer writes SPECS (no Figma pixels) · ui-designer places pixels ·
+                   neither touches token/component internals (that's the DS context).
+microcopy:         ux-designer owns FUNCTIONAL product copy (labels/errors/empty), named with
+                   spiel-friendly keys (`<screen>/<element>`) so the DS context can tokenize them.
+                   brand-designer (DS context) owns expressive/marketing voice. One shared glossary.
+gaps:              any "{{SYSTEM_NAME}} is missing X" → request to the DS context; this context waits or stubs,
+                   never mutates the {{SYSTEM_NAME}} source.
+```
+
+---
+
+## Operating rules for the desktop session
+
+**1. Plan Mode before any consumer-file write.** A screen build mutates the shared consumer file
+(`{{CONSUMER_FIGMA_KEY}}`). Plan in `yaml`, list component instances (keys) + expected bindings +
+honest gaps, and approve before building.
+
+**2. MCP minimalism — a SESSION-level setting.** For screen work connect only **Figma + GitHub**
+(+ **Notion** if briefs live there); disconnect the rest. Idle connectors burn context-window tokens
+and widen the prompt-injection surface.
+
+**3. Load fresh, never from memory.** Agents read `skills/*.md` / `DESIGN.md` at runtime. The mirrors
+(`ds-tokens`, `ds-components`, `figma-gotchas`) are read-only snapshots — refresh them after
+a {{SYSTEM_NAME}} publish rather than trusting stale memory.
+
+**4. Compose, don't reinvent.** Hand-building a {{SYSTEM_NAME}} equivalent is the boundary violation that creates
+drift. Use the component or file a gap.
+
+**5. Two delivery gates.** Design-review lens (zero blockers) + Gotcha #27 binding audit (zero
+unbound on new frames) before a screen is "done."
+
+**6. Prototypes carry no secrets in git.** `.env` + `.vercel` stay gitignored.
+
+---
+
+## Slash commands (thin wrappers — they delegate, they don't duplicate)
+
+| Command | Delegates to | Does |
+|---|---|---|
+| `/design-review [screen / flow / node-id]` | `flow-reviewer` | independent heuristic evaluation (the `ux-flow-review` canon) |
+| `/consumer-audit [page / "all"]` | `ui-designer` | sweep the consumer file for drift + migration opportunities |
+| `/rebind [component / file / "all"]` | `consumer-migrator` | migrate consumer instances onto a freshly published {{SYSTEM_NAME}} main |
+| `/usability-report [screen / flow / "pilot"]` | `data-analyst` | analyze prototype analytics into validation evidence (vs UX benchmarks) |
+| `/relayout [flow / page / "all"]` | `ui-designer` (runs `flow-layout`) | auto-lay screens into sized, named sections grouped by flow (place-new + re-flow) |
+
+Each command body only *invokes the agent* — the workflow lives in **one** place. If a command
+restates the lens, the same workflow now exists twice and keeping them in sync is the exact drift
+problem this repo exists to kill. Add new commands the same way: thin, delegating — never duplicate.
+
+---
+
+## Separate context — the design system
+
+By design, this context is **screen + prototype only**. The {{SYSTEM_NAME}} design system — tokens, styles,
+components, variants, bindings, the manifest, publish, drift, the spiels mechanism — lives in the
+separate **`{{DS_REPO}}`** repo, with the `ds-steward` (steward/auditor/publisher),
+`component-designer` (builder), and `brand-designer` (identity) agents.
+
+**Handoff across the boundary:** the DS context publishes {{SYSTEM_NAME}} + updates its `skills/`+`manifest/`;
+**this** context consumes the published library to build. A {{SYSTEM_NAME}} gap found while building a screen
+comes back as a tokenization/component request — the DS context builds + publishes it; this context
+waits or stubs. `DESIGN.md` is shared ground truth both read.
+
+---
+
+## Relationship to the bootstrap
+
+`CLAUDE.md` / `CONTEXT.md` boot the session with project facts, file keys, version, and preferences.
+`DESIGN.md` is the design-principles source the agents read. The two agents (`ux-designer`,
+`ui-designer`) are the execution specialists this context delegates to after boot. The canonical
+workflows live **inside the agents** (Claude Code); `kickoff-prompts/*.md` are reference recipes the
+agents and you can pull from.
+
+> Note on surface: consumer Figma *writes* run through `use_figma` + the Desktop Bridge. Coded
+> prototypes are ordinary local dev (Vite) — in-scope here (unlike the DS context, which never emits code).

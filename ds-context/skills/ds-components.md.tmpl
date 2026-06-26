@@ -1,0 +1,91 @@
+# ds-components
+
+**Version**: {{DS_VERSION}} (post-publish {{DS_PUBLISHED_DATE}})
+**{{SYSTEM_NAME}} source**: `{{DS_FIGMA_KEY}}`
+
+> ⛔ **TODO — SCAFFOLD, NOT POPULATED.** This is the per-project component catalog for {{SYSTEM_NAME}}:
+> what exists, its published key, its variants, and how to instantiate it. It ships empty — every
+> system's components differ.
+>
+> **Populate it by running `tools/inventory-snippet.js`** inside a `use_figma` call against
+> `{{DS_FIGMA_KEY}}` after each publish. The snippet emits every component set + standalone component
+> with its `variantKeys` (name → published key). Transcribe those into the tables below. Re-run +
+> reconcile after every {{SYSTEM_NAME}} republish (cross-check with `tools/doc-drift-checker.py`).
+>
+> Delete this banner once real entries are in. Keep one `(example)` row per table as a format guide.
+
+Complete reference for {{SYSTEM_NAME}} components — what exists, where it lives, and how to instantiate.
+
+---
+
+## The instantiate-by-key convention (system-agnostic — keep)
+
+- Instantiate consumer instances by **published component key** via
+  `importComponentByKeyAsync(KEY)` → `main.createInstance()`. Keys are 40 hex chars — copy the FULL
+  key from a fresh inventory, never from memory (truncated keys → "not found", `figma-gotchas.md`
+  Gotcha #13).
+- `importComponentByKeyAsync` returns the last **published** version. If a source edit isn't showing
+  up, the library hasn't been republished (Gotcha #4) — and existing consumer instances cache their
+  old layout until swapped (Gotcha #20).
+- A component's `id` (node id, e.g. `171:148`) is session/file-local and is NOT the publish key. Tables
+  below record BOTH: the set ID (for in-file lookups) and the per-variant published key (for imports).
+
+---
+
+## Component pages
+
+Record the page → set inventory here. Format:
+
+| Page | Sets | Notable components |
+|---|---|---|
+| (example) Button | 3 | Button, Button - Pill, Icon Button |
+
+---
+
+## Component catalog
+
+One block per component set. **Table format: Component / Variant | published key | variants | notes.**
+For sets with set-level component properties, add a properties table (Property | Type | Default | Notes).
+
+### <Component name> (example)
+
+**Component set ID**: `__:_` · **Page**: <page>
+
+| Variant | Published key | Variants | Notes |
+|---|---|---|---|
+| `State=Default` (example) | `<40-hex-key>` | 4 | (example) initial empty state |
+
+**Component properties (set-level)** (example)
+
+| Property | Type | Default | Notes |
+|---|---|---|---|
+| `State` | VARIANT | Default | the variant axis |
+| `Label` | TEXT | "Label" | editable string |
+| `Show Icon` | BOOLEAN | true | toggles the leading icon |
+| `Icon` | INSTANCE_SWAP | (default glyph) | swappable; seed `preferredValues` |
+
+---
+
+## Common icon / illustration keys
+
+Record frequently-used icon + illustration component keys (all Size=24 unless noted). Format:
+
+| Icon | Key |
+|---|---|
+| (example) close | `<40-hex-key>` |
+
+---
+
+## Library publishing rules (system-agnostic — keep)
+
+1. The Plugin API **cannot** publish a library — a human clicks **Publish Library** in the Figma UI.
+2. After publishing, consumer files see new content via `importComponentByKeyAsync` /
+   `importStyleByKeyAsync` / `variables.importVariableByKeyAsync`.
+3. Existing consumer instances don't auto-update layout — swap them (`figma-gotchas.md` Gotcha #20).
+4. Before publishing, run the binding audit (Gotcha #27) — zero unbound colors is the gate.
+
+## Conventions for component use
+
+Document the project's compose-don't-reinvent rules here (which component to reach for in which
+situation, back/close button convention, hero-input convention, scrim convention, etc.) as they
+solidify. One worked convention per pattern, so consumers stop hand-building equivalents.

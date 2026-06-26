@@ -1,0 +1,15 @@
+---
+description: Run the {{SYSTEM_NAME}} system-design lens on a token, component, or pattern
+argument-hint: [token/component/pattern or node-id]
+---
+Use the **ds-steward** subagent to run its `system_design_lens` on $ARGUMENTS:
+token standards (DTCG, 3-tier taxonomy, naming, intent-family completeness, scales),
+component/pattern frameworks (Atomic placement, orthogonal variant axes, anatomy/API,
+state completeness), reference benchmarks (DESIGN.md primary → external systems where
+applicable), system-level accessibility, governance, and the **§6 heuristic canon** (system + component
+layer only — Rams restraint · Shneiderman consistency · Gerhardt-Powals uncertainty-reduction ·
+Weinschenk accessibility/error-prevention).
+
+Return evidence-based findings with severity (blocker / major / minor) and a fix per
+finding. Do not approve for publish until zero blockers. Do not duplicate the lens logic
+here — defer to the agent.

@@ -1,0 +1,15 @@
+---
+description: Migrate consumer instances onto a freshly published {{SYSTEM_NAME}} main (confirm the publish is consumed)
+argument-hint: [component / file / page or "all"]
+---
+Use the **consumer-migrator** subagent to propagate a {{SYSTEM_NAME}} publish across the consumer file(s) for
+$ARGUMENTS, following the **`rebind`** procedure: pre-flight that the publish landed → swap stale
+instances (Gotcha #20) → rebind vector fills + property refs (Gotchas #21/#28) → re-audit overrides
+(Gotchas #27/#28, zero unbound) → render-verify each.
+
+Return the per-file migration table (instances swapped · overrides re-applied · audit unbound ·
+verified · notes/gaps). A file counts as migrated only at 0 unbound + verified. A bad freshly-published
+main is a DS gap → route to `{{DS_REPO}}`, don't hand-fix it in the consumer.
+
+For a single file you want to watch step-by-step, invoke the `rebind` skill directly instead.
+Defer to the agent + skill — do not restate the procedure here.

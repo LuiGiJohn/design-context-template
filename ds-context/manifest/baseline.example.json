@@ -1,0 +1,42 @@
+{
+  "version": "v0.1",
+  "publishedAt": "2026-01-01",
+  "lastPatchedAt": "2026-01-08",
+  "patches": [
+    {
+      "date": "2026-01-08",
+      "scope": "Button (set 10:2) — added an `Icon` INSTANCE_SWAP property across all variants.",
+      "change": "Added a set-level INSTANCE_SWAP property `Icon#10:5` (default: Favorite glyph, key abc123...) bound on every Button variant so consumers can swap the leading icon from the properties panel without detaching. Seeded preferredValues with the 6 most-used glyphs.",
+      "republished": true,
+      "consumerImpact": "Additive + non-breaking — existing instances gain the new property at its default. No rebind required; swap per-instance as needed.",
+      "documentedAs": "manifest patches[]; skills/ds-components.md (Button); keyComponents.Button refreshed.",
+      "qa": "Render-verified the swap on a temp instance; Gotcha #27 binding audit clean (0 unbound color); property resolves on all variants."
+    }
+  ],
+  "summary": {
+    "variableCount": 12,
+    "textStyleCount": 4,
+    "effectStyleCount": 1,
+    "componentSetCount": 2,
+    "iconCount": 6,
+    "illustrationCount": 0
+  },
+  "collections": [
+    { "name": "1. Primitives", "id": "VariableCollectionId:1:1", "variableCount": 6, "modes": ["Value"] },
+    { "name": "2. Tokens",     "id": "VariableCollectionId:2:1", "variableCount": 3, "modes": ["Value"] },
+    { "name": "3. Semantic",   "id": "VariableCollectionId:3:1", "variableCount": 3, "modes": ["Light"] }
+  ],
+  "keyTokens": {
+    "Surface/Page": "VariableID:3:1",
+    "Text/Default": "VariableID:3:2",
+    "Border-Radius/md": "VariableID:2:1 (8px)"
+  },
+  "keyComponents": {
+    "Button / Appearance=Primary": "11112222333344445555666677778888aaaabbbb",
+    "Icon Button / Size=Default": "9999888877776666555544443333222211110000ffff"
+  },
+  "knownGaps": [
+    "Dark mode — `3. Semantic` has only a `Light` mode; add a `Dark` mode before shipping dark UI.",
+    "Surface/Overlay (modal scrim) token missing — workaround: inline rgba(10,18,21,0.56) until authored."
+  ]
+}

@@ -1,0 +1,14 @@
+---
+description: Heuristic evaluation of a screen or flow (independent UX review)
+argument-hint: [screen / flow / node-id]
+---
+Use the **flow-reviewer** subagent to run the **`ux-flow-review`** heuristic canon on $ARGUMENTS:
+the five frameworks (Shneiderman · Tognazzini · Gerhardt-Powals · Rams · Weinschenk), the {{DOMAIN}}
+overlay (trust signals, amount/fee clarity, confirmation on irreversible actions, no dark patterns),
+and WCAG 2.2 AA. Evaluate both the screen composition and the flow sequencing.
+
+Return the skill's output: snapshot · flow-health scorecard · findings grouped blocker → major →
+minor with evidence + fix · prioritized fix list · what's working. WCAG AA failures and "flow can't
+complete its goal" are blockers. A real {{SYSTEM_NAME}} component defect is a DS gap, not a finding — route it.
+
+Defer to the agent + skill — do not restate the frameworks here.

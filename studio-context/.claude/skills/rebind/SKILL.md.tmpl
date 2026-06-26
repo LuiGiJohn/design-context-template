@@ -1,0 +1,95 @@
+---
+name: rebind
+description: >
+  The consumer-file rebinding / migration procedure that makes sure a NEW {{SYSTEM_NAME}} publish is
+  actually being consumed. Run after the DS context republishes {{SYSTEM_NAME}}, or when a consumer
+  screen still shows the OLD component (stale cached layout). Procedure: re-import the published main →
+  swap stale instances (Gotcha #20) → rebind vector fills + property refs (Gotchas #21, #28) → re-audit
+  overrides (Gotchas #27/#28) → render-verify. Drive it INTERACTIVELY in the main thread to watch
+  one file at a time; for a hands-off sweep across MANY consumer files, delegate to the
+  `consumer-migrator` agent. Trigger on "rebind", "migrate the consumer", "re-sync instances",
+  "the {{SYSTEM_NAME}} update isn't showing", "swap stale instances onto the new main", "propagate the publish".
+---
+
+# {{SYSTEM_NAME}} consumer rebind / migration
+
+_Examples below reference the original {{SYSTEM_NAME}} system + its consumer file; the swap / rebind /
+re-audit procedure is system-agnostic._
+
+{{SYSTEM_NAME}} source edits don't reach a consumer file until the DS context clicks **Publish Library**,
+and even then consumer instances cache their old layout until they're swapped (Gotcha #20). This skill is
+how the studio context **confirms a publish is actually consumed**: re-import → swap → rebind →
+re-audit → verify. Run it on the consumer file `{{CONSUMER_FIGMA_KEY}}` (or whichever consumer file
+is in scope). Load `skills/figma-gotchas.md` first — the steps below cite its gotchas.
+
+> Scope: instance-level OVERRIDES only. You do NOT audit or fix the {{SYSTEM_NAME}} component's internals — those
+> are the DS context's responsibility (Gotcha #27 "audit instances skip their internals"). If the fresh
+> main itself is wrong, that's a DS gap, not a rebind.
+
+---
+
+## Pre-flight
+
+1. **Confirm the publish landed.** `importComponentByKeyAsync(key)` returns the last *published*
+   version — if the DS context hasn't published yet, you'll just re-pull the old one. Verify the
+   intended change is present on the imported main (new dimensions / variant / treatment) before
+   migrating anything.
+2. **Inventory the targets.** List the stale instance node-IDs in the consumer file + the published
+   component KEY they should point at (from `skills/ds-components.md`). Note which overrides each
+   instance carries (text labels, swapped icons/images, toggles, colored glyphs) — those are what you
+   must re-apply after the swap.
+3. **Plan Mode for the write.** A consumer-file migration is a write; plan the per-instance list in
+   `yaml` and approve before mutating.
+
+## The procedure (per instance)
+
+```
+re-import  →  swap stale  →  rebind  →  re-audit  →  verify
+ (key)        (#20)          (#21,#28)   (#27/#28)    (screenshot)
+```
+
+1. **Re-import the published main** — `const fresh = await figma.importComponentByKeyAsync(KEY);`
+2. **Swap the stale instance (Gotcha #20)** — instance layout caches until republish; force the
+   re-sync: `instance.swapComponent(fresh);`
+3. **Rebind everything the swap reset:**
+   - **Vector fills (Gotcha #21)** — `swapComponent` resets vector fills to the new main's defaults
+     (e.g. `Icon/Default/Default`), dropping your colored-glyph override. Rebind each vector fill you
+     had customized.
+   - **Property references (Gotcha #28)** — swap/clone detach `componentPropertyReferences`: text
+     nodes lose their `characters` ref (label no longer editable), swap slots lose `mainComponent`
+     (icon/image swap breaks), toggled nodes lose `visible`. **Re-bind the reference FIRST, then set
+     the value** — never the reverse (setting the value sets the shared default and preserves the
+     binding only if the ref exists).
+   - **Re-apply overrides that reset (Gotcha #20 step 3)** — labels, swapped glyphs/images, toggles
+     back to the instance's intended content.
+4. **Re-audit the overrides (Gotchas #27 / #28)** — at the instance/override level only: confirm each
+   text node has its `characters` ref (editable), each swap slot its `mainComponent` ref, each toggled
+   node its `visible` ref; and that any NEW frame you built *outside* an instance has zero unbound
+   visible properties. Target zero `NONE`. (Do not walk {{SYSTEM_NAME}} instance internals.)
+5. **Render-verify** — `figma_get_component_image` (REST) to confirm the change shows and overrides
+   survived. `figma_capture_screenshot` can hang the Desktop Bridge right after writes — prefer the
+   REST image, or wait a few seconds.
+
+## Per-file report (what to return)
+
+For each consumer file / page swept, report a row:
+
+| File / page | Instances swapped | Overrides re-applied | Audit (unbound) | Verified | Notes / gaps |
+|---|---|---|---|---|---|
+
+- **Audit** must read `0 unbound` to count as migrated.
+- **Notes / gaps** — anything that couldn't be re-applied, or a defect in the fresh main → route to
+  the DS context as a {{SYSTEM_NAME}} gap (don't hand-fix the component here).
+
+## When to use which surface
+
+- **This skill, interactively** — one file at a time, when you want to watch each swap + verify.
+- **`consumer-migrator` agent** — hands-off sweep across multiple consumer files/pages, returns the
+  per-file table above. Worth it because a single {{SYSTEM_NAME}} publish usually fans out over many screens.
+
+## Common traps (from the gotchas)
+
+- Re-importing before the DS context publishes → you migrate onto the *old* main. Always pre-flight.
+- Setting `.characters` / `swapComponent` before re-binding the ref → mutates the SHARED default and
+  can leak across variants (Gotcha #28 #2). Re-bind first.
+- Treating a wrong fresh main as a rebind problem → it's a DS gap. Stop and route it.

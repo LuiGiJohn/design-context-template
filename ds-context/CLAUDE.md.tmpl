@@ -1,0 +1,89 @@
+# CLAUDE.md — Claude Code working notes
+
+Persistent context for **{{SYSTEM_NAME}}** ({{SYSTEM_FULL_NAME}}) design-system work.
+**Read `CONTEXT.md` first** — it has the full bootstrap (scope gate, project facts, skill table,
+critical rules). This file adds Claude-Code-specific workflow notes + the current working state, and
+is loaded automatically by Claude Code on startup.
+
+## Scope (one line)
+This context **authors** the {{SYSTEM_NAME}} design system (Figma source `{{DS_FIGMA_KEY}}`) — tokens,
+styles, components, variants, the manifest, publish, drift. Consumer *screens* + coded prototypes live
+in the separate **`{{STUDIO_REPO}}`**; a gap found there routes BACK here as a tokenization/component
+request, never a hand-built equivalent.
+
+## Project quick-ref
+- {{SYSTEM_NAME}} Figma source (write surface): `{{DS_FIGMA_KEY}}`
+- Consumer file ({{CONSUMER_FILE_NAME}}): `{{CONSUMER_FIGMA_KEY}}` — the *separate* screen-creation context's surface (this context only publishes the library it consumes)
+- Current version: **{{DS_VERSION}}** — see `manifest/manifest-{{DS_VERSION}}.json` (canonical baseline)
+- Fonts: {{FONTS}} — load all weights before any text op
+- Layout: `skills/` (ds-*.md), `manifest/` (manifest-vX.Y.json), `tools/`, `.claude/` (agents + commands)
+
+## How to work efficiently here (hard-won lessons)
+1. **Edit this repo directly — don't round-trip through tarballs.** Every regression this kind of
+   project hits (lost component content, re-added dropped rows, stale base) comes from archives rebuilt
+   off a guessed base. Edit files in place, additively, verify against current `main`, commit.
+2. **The manifest is ground truth.** It holds variant keys, `keyTokens` (name → VariableID),
+   `keyComponents` (published keys), and counts. Read it instead of re-querying Figma for facts you
+   already have.
+3. **{{SYSTEM_NAME}} *source* edits don't reach consumers until "Publish Library."** That is a human
+   action in the Figma UI (Plugin API cannot publish — Critical Rule #1). `importComponentByKeyAsync`
+   returns the last *published* version. Sequence: edit source → user republishes → THEN
+   migrate/consume in the consumer file.
+4. **Mid-version component fixes** are logged in the manifest `patches[]` array with
+   `republished: false` until published.
+5. **Figma via `use_figma`**: load the `figma-use` skill first + all {{FONTS}} weights before any text
+   op; compute results inside the script and return only diffs/verdicts (not full dumps); take
+   screenshots via the URL + `curl` + Read flow, never inline base64.
+6. **Compose, don't reinvent.** Build components by composing `ds-steward`'s tokens; never apply a raw
+   primitive where a semantic exists — file a token request instead. A missing {{SYSTEM_NAME}} piece is
+   authored here, never hand-built downstream.
+7. Ignored files: `.DS_Store`, and `inventory-actual.json` (inventory snapshot — regenerate
+   with `tools/inventory-snippet.js`).
+8. Drift check: `python3 tools/doc-drift-checker.py manifest/manifest-{{DS_VERSION}}.json inventory-actual.json`.
+
+## Context-window hygiene
+- Prefer fresh sessions at phase boundaries; bootstrap from `CONTEXT.md` + manifest rather than
+  carrying a long conversation.
+- Use `git grep`/targeted reads, not whole-file dumps; delegate heavy searches/audits to subagents
+  (they return summaries).
+- MCP minimalism: connect only Figma + GitHub (+ Notion if briefs live there); disconnect the rest.
+
+## Current working state — snapshot (prune as it ages)
+- **🆕 scaffolded from template — first run.** Context bootstrapped from the design-context template.
+  Scaffolding: `CONTEXT.md` + `CLAUDE.md` (bootstrap), `README.md`, `AGENTS-HANDOFF.md`, shared
+  `DESIGN.md`, `skills/`, `manifest/`, `tools/`, and `.claude/` (`ds-steward` + `component-designer` +
+  `brand-designer` agents, `/design-system-check` + `/binding-audit` + `/drift-check` commands).
+  Fill in the `{{...}}` placeholders, then replace this line with the first real working-state note.
+
+## Maintenance
+On any {{SYSTEM_NAME}} change: update the relevant `skills/*.md`, regenerate the manifest (or append a
+`patches[]` entry for a mid-version fix), bump the version line in `CONTEXT.md` (and here) on a publish,
+run the binding audit (zero unbound), then commit + push. Drift in the skills defeats the bootstrap.
+
+## Agent orchestration (design-system agents)
+
+This context is **design system only** — three role-based subagents. On any task, decide the moment in
+the pipeline first, then delegate. Full map, pipeline, and operating rules: see `AGENTS-HANDOFF.md`.
+
+| Route to | When | Write surface |
+|---|---|---|
+| `ds-steward` | tokens/styles, token architecture, governance, the binding-audit GATE, publish, drift, manifest, skills/docs, spiels mechanism, lookup | {{SYSTEM_NAME}} source variables/styles + the context repo |
+| `component-designer` | build/modify components + variants/states/layout, bind to tokens | {{SYSTEM_NAME}} source component/component_set nodes |
+| `brand-designer` | identity direction, illustration, photo/video, marketing creative | identity + expressive assets (DECISIONS handed to ds-steward) |
+| _separate context_ | build consumer screens, flows/specs, coded prototypes | NOT handled here — `{{STUDIO_REPO}}` |
+
+**The decide→encode→build→audit→publish pipeline:** `brand-designer` decides identity →
+`ds-steward` encodes it as semantic tokens → `component-designer` builds + binds the components +
+completes their states/a11y → `ds-steward` independently runs the binding-audit gate + the user clicks
+Publish → updated skills/manifest hand off to the separate screen-creation context, which consumes the
+published library. A gap found downstream routes back here as a tokenization request.
+
+Operating rules (full detail in AGENTS-HANDOFF.md):
+- Plan Mode is the gate before any source-variable/component write or publish — plan in `yaml`
+  (type + name + bindings + honest gaps), approve, then build incrementally with render-verification.
+- Load `skills/*.md` + `DESIGN.md` + the manifest fresh, never from memory.
+- The binding audit is a publish GATE — zero unbound on any new/modified component. `clone()` does not
+  carry bindings; re-bind after cloning.
+
+Slash commands (thin wrappers that delegate to the agents — never duplicate the workflow, or it drifts):
+`/design-system-check` (→ ds-steward) · `/binding-audit` (→ ds-steward) · `/drift-check` (→ ds-steward)

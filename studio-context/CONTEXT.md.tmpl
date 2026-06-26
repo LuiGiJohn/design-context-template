@@ -1,0 +1,164 @@
+# {{SYSTEM_NAME}} Studio Context — Bootstrap
+
+You are Claude, working on **{{SYSTEM_NAME}} screen creation + live prototyping** for {{PROJECT_NAME}}
+({{PARENT_ORG}} {{DOMAIN}}). {{SYSTEM_NAME}} = {{SYSTEM_FULL_NAME}}.
+
+This repo is the **persistent context** for all {{SYSTEM_NAME}} *screen-building and coded-prototype*
+work. The user references it at the start of every new chat so you have continuity across
+sessions without copy-paste.
+
+---
+
+## ⚠️ Scope — screen creation + live prototyping ONLY
+
+This context **consumes the published {{SYSTEM_NAME}} design system** to:
+1. **Build / recreate consumer screens** by composing {{SYSTEM_NAME}} components in the CONSUMER Figma
+   file (`{{CONSUMER_FIGMA_KEY}}`), plus the UX definition that precedes pixels (flows, IA,
+   state matrices, interaction + a11y specs, functional microcopy).
+2. **Build live coded prototypes** (React/Vite, instrumented for usability testing) under
+   `prototypes/` — the **required usability-validation gate**: every flow is usability-tested as a
+   coded prototype *before* it goes live or is handed to the product team + engineers. This proves
+   the design *works for users*, which the Figma fidelity gates cannot. A failed test routes back to
+   `ux-designer` / `ui-designer`, not forward.
+
+**Out of scope — the SEPARATE `{{DS_REPO}}` owns these:** the {{SYSTEM_NAME}} design system
+itself — tokens, styles, components, variants, bindings, the manifest, publish, drift, and
+the spiels mechanism. That context **publishes** {{SYSTEM_NAME}} + updates its `skills/`+`manifest/`;
+**this** context consumes the published library. A {{SYSTEM_NAME}} gap found while building a screen
+routes **back to that context** as a tokenization / component request — never hand-build a
+{{SYSTEM_NAME}} equivalent here (that is the drift boundary).
+
+> **`ds_mode` note ({{DS_MODE}}):** in **consume** mode the `library_key` below points at an already
+> *published* {{SYSTEM_NAME}} system and the read-only mirrors are live snapshots of it. In **build** mode the
+> sibling DS context is still authoring {{SYSTEM_NAME}}; the `library_key` + mirrors fill in **after the DS
+> context's first publish**, and until then component keys/versions may be placeholders. Either way,
+> this context never authors {{SYSTEM_NAME}} source — it consumes whatever the DS context has published.
+
+**Hard rules:**
+- **Never author or publish {{SYSTEM_NAME}} source** (`{{DS_FIGMA_KEY}}`) here — read-only reference.
+- **Compose, don't reinvent.** About to hand-build a row / amount field / inner-screen header /
+  dialog → STOP, use the {{SYSTEM_NAME}} component, or file a gap to the DS context.
+- Screen Figma writes use `use_figma` (requires the Figma Desktop Bridge). Coded prototypes are
+  ordinary local dev (Vite) — that's expected and in-scope here (unlike the DS context).
+
+---
+
+## How to use this context
+
+1. Read this file + `CLAUDE.md` (Claude Code loads `CLAUDE.md` automatically on startup).
+2. Load the relevant `skills/*.md` for the task (table below).
+3. **Delegate to the role agents** — `ux-designer` (flows / IA / state matrices / specs /
+   functional copy, before pixels) and `ui-designer` (compose {{SYSTEM_NAME}} into pixel-perfect screens,
+   run the design-review lens) — or run a command (`/design-review`, `/consumer-audit`).
+4. For coded prototypes, drive the `usability-prototype` skill / `usability-prototype-builder`
+   agent (instrumented React/Vite — cohort split, Clarity heatmaps, PostHog time-on-task).
+
+---
+
+## Project facts (always relevant)
+
+- **Consumer file ({{CONSUMER_FILE_NAME}})**: `{{CONSUMER_FIGMA_KEY}}` — **this context's write surface**
+- **{{SYSTEM_NAME}} Figma source**: `{{DS_FIGMA_KEY}}` — **READ-ONLY reference** (authored/published by `{{DS_REPO}}`)
+- **{{SYSTEM_NAME}} library_key**: `{{DS_LIBRARY_KEY}}`
+- **Current {{SYSTEM_NAME}} version consumed**: {{DS_VERSION}} (published {{DS_PUBLISHED_DATE}})
+- **Standard mobile frame**: {{FRAME_W}}×{{FRAME_H}}, bg `{{PAGE_BG_TOKEN}}` (see `skills/screens.md`)
+
+## User working preferences (always honored)
+
+- **Methodology**: {{USER_METHODOLOGY}}
+- **Communication**: {{USER_COMMUNICATION}}
+- **Code style**: {{USER_CODE_STYLE}}
+- **Mentorship**: {{USER_MENTORSHIP}}
+- **Honesty**: {{USER_HONESTY}}
+
+## Skill files (load per task)
+
+| Skill | Path | When to load |
+|---|---|---|
+| screens | `skills/screens.md` | Building/recreating any consumer screen — frame setup, chrome, scroll, recipes |
+| ds-components | `skills/ds-components.md` | Composing {{SYSTEM_NAME}} components — keys to instantiate, variants, conventions *(read-only mirror)* |
+| ds-tokens | `skills/ds-tokens.md` | Verifying token bindings on screens — variable IDs, text styles *(read-only mirror)* |
+| figma-gotchas | `skills/figma-gotchas.md` | ALWAYS when using `use_figma` — Plugin API traps *(read-only mirror)* |
+| ux-flow-review | `.claude/skills/ux-flow-review/` | Reviewing/evaluating a screen or flow — the shared 5-framework heuristic canon (invocable) |
+| rebind | `.claude/skills/rebind/` | Migrating consumer instances onto a freshly published {{SYSTEM_NAME}} main — re-import → swap → rebind → re-audit → verify (invocable) |
+| usability-analytics | `.claude/skills/usability-analytics/` | Validating screens with DATA — PostHog/Clarity/SEQ metrics benchmarked vs UX norms; the analysis canon (invocable) |
+| flow-layout | `.claude/skills/flow-layout/` | Auto-laying screens into sized, named sections grouped by flow — place-new + re-flow, by frame-name convention (invocable) |
+
+> `ux-flow-review` is the **shared evaluation canon** — `ui-designer`, `flow-reviewer`, and
+> `/design-review` all load it so the frameworks never drift. `rebind` is the procedure that
+> confirms a {{SYSTEM_NAME}} publish is actually consumed; run it interactively or via `consumer-migrator`.
+> `usability-analytics` is the empirical canon the `data-analyst` runs so the `ux-designer` validates
+> screens against behavioral data, not opinion.
+>
+> The mirrors (`ds-tokens`, `ds-components`, `figma-gotchas`) are **read-only snapshots**
+> of DS-owned skills; their source of truth is `{{DS_REPO}}`. Refresh after each {{SYSTEM_NAME}}
+> publish (header in each file has the command). For UI/prototype animation, the `motion-design`
+> skill is available **globally** (invoke via the Skill tool) — it is owned by the DS context, not vendored here.
+
+## Prototypes
+
+| Prototype | Path | What |
+|---|---|---|
+| {{PROTOTYPE_NAME}} | `prototypes/{{PROTOTYPE_NAME}}/` | {{PROTOTYPE_DESC}} usability prototype (React/Vite, {{SYSTEM_NAME}} DS), instrumented with cohort separation + Microsoft Clarity heatmaps + PostHog time-on-task. `npm install` then `npm run dev`. Secrets in `.env` (gitignored). |
+
+`.claude/launch.json` has dev/preview server configs.
+
+## Agents + commands (the workflows live here)
+
+The canonical workflows are baked into the agents (Claude Code) — not separate kickoff files
+(the `kickoff-prompts/` are reference recipes).
+
+| Surface | Owns | Does |
+|---|---|---|
+| agent `ux-designer` | flows, IA, journeys, state matrices, interaction + a11y specs, research synthesis, acceptance criteria, functional microcopy | defines the brief BEFORE pixels; flags new-pattern/component needs to the DS context |
+| agent `ui-designer` | composing {{SYSTEM_NAME}} into pixel-perfect, system-compliant consumer screens; build-time design-review self-check; consumer-file drift sweeps | builds screens from the brief; files {{SYSTEM_NAME}} gaps to the DS context |
+| agent `flow-reviewer` | INDEPENDENT heuristic evaluation of screens + flows (runs the `ux-flow-review` canon) | the usability gate — read-only; routes component defects to the DS context |
+| agent `consumer-migrator` | propagating a {{SYSTEM_NAME}} publish across consumer files (runs the `rebind` procedure) | confirms {{SYSTEM_NAME}} changes are actually consumed; swap → rebind → re-audit → verify |
+| agent `data-analyst` | turning prototype analytics into screen-validation evidence (runs the `usability-analytics` canon) | benchmarks behavior vs UX norms; feeds verdicts to `ux-designer` |
+| `/design-review` | → `flow-reviewer` | heuristic evaluation of a screen/flow (5 frameworks + {{DOMAIN}} + WCAG 2.2 AA) |
+| `/consumer-audit` | → `ui-designer` | sweep the consumer file for drift + migration opportunities |
+| `/rebind` | → `consumer-migrator` | migrate consumer instances onto a freshly published {{SYSTEM_NAME}} main |
+| `/usability-report` | → `data-analyst` | analyze prototype analytics into validation evidence (PostHog/Clarity/SEQ vs benchmarks) |
+| `/relayout` | → `ui-designer` (runs `flow-layout`) | auto-lay screens into sized, named sections grouped by flow (place-new + re-flow) |
+
+> The DS roles (`ds-steward` / `component-designer` / `brand-designer`) live in the **separate**
+> `{{DS_REPO}}`. {{SYSTEM_NAME}} gaps + token/component requests route there.
+
+---
+
+## Critical rules (always)
+
+1. **Consume, never author {{SYSTEM_NAME}} source** — tokens/components/variants are owned + published by the DS context. File a gap; don't hand-build a {{SYSTEM_NAME}} equivalent (that's drift).
+2. **`use_figma` requires font loading** — load all {{FONTS}} weights before any text op (screen Figma writes).
+3. **Render-verify after every visual change** — screenshot to confirm; no "looks fine" without one.
+4. **Three gates before handoff** — (a) the design-review lens (zero blockers) + (b) the Gotcha #27 binding audit (zero unbound on NEW frames), both in Figma, THEN (c) the **usability-validation gate**: usability-test the flow as a coded prototype (task success / time-on-task / SEQ + heatmaps) before it goes live or reaches product + engineering.
+5. **Honest scope notes always** — flag any unavoidable hardcoded stopgap as a DS gap routed to the DS context.
+6. **Prototypes carry no secrets in git** — `.env` (Clarity/PostHog/auth) + `.vercel` stay gitignored.
+7. **Plan Mode before consumer-file builds** — a screen build is a write; plan in `yaml` and approve before mutating the consumer file.
+8. **Verify consumption after a DS publish** — a publish isn't "landed" here until consumer screens actually show it. Run `rebind` (interactive) or `consumer-migrator` (sweep) to swap stale instances onto the fresh main, rebind overrides, and re-audit. Instances cache old layout until swapped (Gotcha #20).
+
+## Communication format
+
+User prefers structured responses with `yaml` blocks for planning/decision points; inline prose
+for execution and explanation. {{USER_FORMAT}}
+
+---
+
+## Boundary recap
+
+```
+{{DS_REPO}}  →  authors + PUBLISHES {{SYSTEM_NAME}} (tokens/components/variants, manifest, drift)
+        │ publish + skills/manifest updates
+        ▼
+{{STUDIO_REPO}} →  CONSUMES published {{SYSTEM_NAME}}:
+        ux-designer (define) → ui-designer (compose) → Figma gates → flow-reviewer (heuristic gate)
+        → PROTOTYPE usability test → data-analyst benchmarks the behavior → ux-designer VALIDATES
+        → hand validated screens to product team + engineers / go live
+        │ "{{SYSTEM_NAME}} gap found while building" → tokenization/component request
+        ▲
+        └──────────────── routes back to {{DS_REPO}}
+DESIGN.md = shared ground truth, both contexts read it.
+```
+
+After reading this file, confirm context is loaded (one line), then ask what the task is — load
+the matching `skills/*.md` and delegate to the right agent (`ux-designer` / `ui-designer`) or command.

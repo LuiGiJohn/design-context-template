@@ -1,0 +1,202 @@
+# {{SYSTEM_NAME}} Design-System Agents — Claude Code Handoff
+
+Orchestration layer for the {{SYSTEM_NAME}} **design-system** role agents. This context revolves around the
+design system only: maintaining the {{SYSTEM_NAME}} SOURCE and the brand identity that feeds it. **Screen
+creation and live prototyping live in a separate context** (see the last section). Complements —
+does not replace — `CONTEXT.md` / `CLAUDE.md` (project facts + working preferences) and `DESIGN.md`
+(design principles + benchmarks).
+
+---
+
+## Install
+
+`.claude/` (the `ds-steward`, `component-designer`, + `brand-designer` agents and the
+`/design-system-check`, `/binding-audit`, `/drift-check` commands) and `DESIGN.md` are **committed to this repo** — a fresh
+clone already has the roster, no copy step. (`/agents` opens an interactive panel inside a terminal
+Claude Code session to verify.)
+
+The screen-creation roster (`ux-designer`, `ui-designer`, `flow-reviewer`, `consumer-migrator` +
+`/design-review`, `/consumer-audit`, `/rebind` + the screen-review / rebind skills) is
+**not installed here** — it lives in the separate **`{{STUDIO_REPO}}`** repo (`../{{STUDIO_REPO}}/`).
+
+---
+
+## The organizing principle — ownership, not job titles
+
+Three roles in this context, each owning a distinct **write-surface** and **object type**, so they
+never collide.
+
+| Role | Write surface | Owns (object type) |
+|---|---|---|
+| `ds-steward` | {{SYSTEM_NAME}} SOURCE **variables + styles** + the context repo | tokens / token architecture · governance · the binding-audit GATE · publish · drift · manifest · docs of record |
+| `component-designer` | {{SYSTEM_NAME}} SOURCE **component / component_set nodes** | component construction · variants · states · layout · visual craft · binding to tokens |
+| `brand-designer` | IDENTITY + expressive assets (illustration / photo / video / marketing) | how the brand looks and feels (DIRECTION) |
+
+**Mental model:** Brand decides identity → `ds-steward` encodes it as semantic tokens →
+`component-designer` builds + binds the components → `ds-steward` audits + publishes →
+(handoff) the separate screen-creation context applies it.
+
+---
+
+## Roster
+
+| Agent | Owns | Fires on |
+|---|---|---|
+| `ds-steward` | variables/styles authoring, token architecture, governance, the binding-audit GATE, publish hygiene, drift, manifest, skills/docs of record, spiels mechanism, lookup | "add a token/style", "audit bindings", "publish", "check drift", "update the skills", "what's the token/key for X?" |
+| `component-designer` | component / component_set construction, variants, states, layout, visual craft, binding to tokens, a11y-at-build | "build/modify the X component", "add a variant", "fix the states/layout", "expose this slot" |
+| `brand-designer` | identity direction, illustration style, imagery, photography system, video automation, marketing creative | "brand direction", "illustration style", "grade these photos", "set up the render" |
+
+**Quality gate (the build→audit seam)** — `component-designer` builds + binds and runs its
+**visual_lens** + a self-audit; then `ds-steward` **independently** runs the **system-design lens**
+(token standards, component/pattern frameworks, DESIGN.md §3 + the **§6 heuristic canon** at the
+system + component layer — Rams · Shneiderman · Gerhardt-Powals · Weinschenk — and governance) plus
+the **binding gate** before publish. A fresh auditor catches what the builder rationalizes
+away. Evidence-based, severity-ranked; nothing publishes with open blockers or unbound elements.
+(Screen-/flow-level heuristics are out of scope — separate screen-creation context.)
+
+---
+
+## Delegation map
+
+| User says something like… | Route to |
+|---|---|
+| "Add a token/style" · "add a semantic/alias" · "fix a binding's token" | `ds-steward` |
+| "Build / modify the X component" · "add a variant" · "fix states/layout" · "expose a slot" | `component-designer` (→ `ds-steward` audits + publishes) |
+| "Audit bindings" · "are we clean before publish?" | `ds-steward` (`/binding-audit`) |
+| "Check drift" · "update the skills" · "commit the context" | `ds-steward` (`/drift-check`) |
+| "Add translations" · "localize" · "set up i18n" | `ds-steward` (spiels MECHANISM; string content comes from the screen-creation context) |
+| "What's the binding/key/spec for X?" | `ds-steward` (lookup) |
+| "Brand direction" · "illustration" · "grade photos" · "set up the render" | `brand-designer` |
+| "Build / recreate the X screen" · "map the flow" · "write the spec" · "prototype this" | **separate screen-creation context** — not handled here |
+| Ambiguous | ask which surface; don't guess |
+
+---
+
+## The pipeline (this context's slice)
+
+```yaml
+design_system_pipeline:
+  1_brand:  (if new expressive territory) identity, illustration, tone  → a decision
+  2_ds:     tokenize the decision; ensure the needed tokens exist (ds-steward)
+  3_comp:   build / extend the component, complete its states + a11y, bind to tokens (component-designer)
+  4_ds:     binding audit (independent) → user clicks Publish → migrate library usages
+  5_ds:     update skills/manifest, drift-check, commit the context
+  handoff:  published {{SYSTEM_NAME}} + updated skills/manifest  →  the separate screen-creation context
+            consumes it to build screens & prototypes
+  feedback:
+    comp_to_ds:    "need a token that doesn't exist" → ds-steward authors it (never a raw primitive)
+    screens_to_ds: "{{SYSTEM_NAME}} gap found while building a screen" → ds-steward + component-designer build it
+    any_to_ds:     "anything changed" → ds-steward updates skills + commits (or it rots)
+```
+
+## Heuristic canon per pipeline step (DESIGN.md §6 applied)
+
+Each step has a governing slice of the §6 frameworks — these are the *lens at that step*, not
+background reading. Apply only the **system / component / brand** layer here; screen- and
+flow-level heuristics belong to the separate context (last row).
+
+| Pipeline step | §6 heuristics that govern it | Applied as a concrete check |
+|---|---|---|
+| **1 · brand decision** | Rams (innovative, aesthetic, honest, *as little design as possible*) · Tognazzini **Color** (functional, accessible, secondary to content) | New expressive territory must earn its place; a color carries its AA constraint *before* it can become a token. |
+| **2 · tokenize** (`ds-steward`) | Rams (restraint — generalize, no decorative tokens; thorough) · Tognazzini **Color** (AA) · governance (semantic-tier discipline) | AA fg/bg token PAIRS; never a raw primitive where a semantic exists; intent families complete + symmetric. |
+| **3 · build + bind** (`component-designer`) | Rams (craft: aesthetic/unobtrusive/thorough/as-little-as-possible) · Shneiderman (consistency: uniform anatomy/naming; reduce memory load: self-describing APIs) · Gerhardt-Powals (clear states, data-fusion) · Weinschenk (**Accessibility** baked into the states) | EXTEND an axis before spawning a component; complete state sets (default/focus/error/disabled); 44×44 targets; bind every node. |
+| **4 · audit → publish → migrate** (`ds-steward`) | Rams (thorough to the last detail) · Weinschenk (**Error Prevention · User Feedback**) · Shneiderman (informative feedback + simple error handling + easy reversal) | Independent zero-unbound binding gate; components ship with their full state set so every consumer inherits them. |
+| **5 · update skills/manifest · drift-check · commit** (`ds-steward`) | Rams (long-lasting, honest) · Shneiderman (consistency, reduce short-term memory load) | Docs match the *published* reality (drift-check); the manifest is the single source of truth so nothing is re-derived from memory. |
+| **handoff / feedback** | Gerhardt-Powals (present new information with meaningful aids) · Weinschenk (**System Capabilities**) | The published library + skills ARE the meaningful aid the screen context builds on; a found gap routes back here as a tokenization request. |
+| _separate context — NOT applied here_ | Shneiderman (closure · shortcuts · locus of control) · Tognazzini (anticipation · autonomy · visible navigation · explorability · efficiency) · Gerhardt-Powals (automate workload) · Weinschenk (**Navigation**) | Screen + flow composition — applied where screens are built, not in the design system. |
+
+## Boundary calls
+
+```yaml
+color_and_type: Brand DECIDES identity · ds-steward ENCODES as semantic tokens.
+                A color never enters {{SYSTEM_NAME}} except as a DS-tokenized brand decision.
+tokens_vs_components: ds-steward authors VARIABLES/STYLES · component-designer constructs
+                COMPONENTS + binds them · ds-steward AUDITS + publishes. A needed token
+                that doesn't exist → component-designer requests it; never a raw primitive.
+illustration:   Brand owns style/asset · component-designer builds the componentized version ·
+                ds-steward tokenizes/audits/publishes it.
+microcopy:      Brand owns expressive voice. Functional product copy (labels/errors/empty)
+                belongs to the screen-creation context — share one glossary across contexts.
+```
+
+---
+
+## Operating rules for the desktop session
+
+**1. Plan Mode is the HARD gate before any source write or publish.** The agents plan in `yaml`, but
+that's a *soft* instruction the model can skip. Claude Code's **Plan Mode** is a tool-level gate —
+Claude cannot write until you approve. Turn it on for the highest-blast-radius operations: **token
+authoring, source-component mutations, and every Publish**. A wrong write to the *published*
+{{SYSTEM_NAME}} source ripples into every consumer screen, so approve the plan before that expensive,
+ripple-y mutation — exactly the safety the soft yaml plan can't guarantee.
+
+**2. MCP minimalism — a SESSION-level setting, not just per-agent.** For {{SYSTEM_NAME}} work connect only
+**Figma + GitHub** (and **Notion** if briefs/handoffs live there); disconnect Gmail / Calendar /
+Drive / the rest. Every idle connector burns context-window tokens on tool definitions and widens the
+prompt-injection surface for zero gain.
+
+**3. Load fresh, never from memory.** Every agent reads `skills/*.md` / `DESIGN.md` / `manifest` at
+runtime. Rebuilding a skill doc from chat memory loses content — build additively from ground truth.
+
+**4. Plugin API can't publish.** The user clicks "Publish Library" — every token/component change
+waits on a manual publish before consumer migration.
+
+**5. The binding audit is a gate.** Any component built via the Figma write surface shows zero unbound
+elements before publish. `clone()` does not carry bindings — re-bind after cloning.
+
+**6. Every {{SYSTEM_NAME}} change updates this repo** before the session ends, or the bootstrap goes stale →
+`ds-steward` updates skills/manifest and commits.
+
+---
+
+## Slash commands (thin wrappers — they delegate, they don't duplicate)
+
+| Command | Delegates to | Does |
+|---|---|---|
+| `/design-system-check [target]` | `ds-steward` | run the system-design lens |
+| `/binding-audit [component]` | `ds-steward` | binding-completeness gate |
+| `/drift-check [actual.json]` | `ds-steward` | manifest vs actual drift |
+
+Each command body only *invokes the agent* — the workflow lives in **one** place. The catch: if a
+command restates the audit logic, the same workflow now exists in two places (command + agent) and
+keeping them in sync is the exact drift problem this repo exists to kill. So the only safe command is
+a thin one that delegates. Add new commands the same way: thin, delegating — never duplicate the logic.
+
+---
+
+## Separate context — screen creation + live prototyping
+
+By design, this context is **design-system only**. Two concerns deliberately live in a **different
+context** (`{{STUDIO_REPO}}` — a separate repo / session / agent set), so they don't pull
+screen-building or coded-prototype tooling into the design-system window:
+
+- **Screen creation** — composing {{SYSTEM_NAME}} into pixel-perfect consumer screens (the consumer file
+  `{{CONSUMER_FIGMA_KEY}}`), plus the UX definition that precedes it (flows, IA, state matrices,
+  specs, functional microcopy). The `ux-designer` + `ui-designer` + `flow-reviewer` +
+  `consumer-migrator` agents (+ `/design-review`, `/consumer-audit`, `/rebind` and the
+  screen-review / rebind skills) live in **`../{{STUDIO_REPO}}/`**, not here.
+- **Live prototyping** — coded prototypes (React/Vite, instrumented for usability testing), in
+  `../{{STUDIO_REPO}}/`. Driven by the usability-prototype skill / builder agent, not these.
+- **Consume-verification** — after a {{SYSTEM_NAME}} publish, the studio context runs the rebind /
+  `consumer-migrator` procedure to swap stale consumer instances onto the fresh main + confirm the
+  change is actually used downstream.
+
+**Handoff across the boundary:** `ds-steward` publishes {{SYSTEM_NAME}} + updates `skills/` + `manifest/`;
+the screen-creation context consumes the published library to build. A {{SYSTEM_NAME}} gap found while
+building a screen comes back here as a tokenization/component request — `ds-steward` builds and
+publishes it, the screen context waits or stubs. `DESIGN.md` is shared ground truth that both read.
+
+---
+
+## Relationship to the bootstrap
+
+`CLAUDE.md` / `CONTEXT.md` still boot the session with project facts, file keys, version, and
+preferences. `DESIGN.md` is the design-principles source the agents read. These three agents
+(`ds-steward`, `component-designer`, `brand-designer`) are the execution specialists this context
+delegates to after boot. The canonical workflows live **inside the agents** (Claude Code only) — there
+are no separate `kickoff-prompts/*.md` to keep in sync; the agents read `skills/*.md` + `DESIGN.md` +
+the manifest for the detail.
+
+> Note on surface: per the repo README, {{SYSTEM_NAME}} Figma *writes* run through the Desktop Bridge. If
+> your Claude Code has a Figma write MCP wired in, `ds-steward` executes directly; if not, it acts as a
+> planner that emits the `use_figma` script + audit checklist for a bridge session.

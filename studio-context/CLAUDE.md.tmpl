@@ -1,0 +1,114 @@
+# CLAUDE.md — Claude Code working notes
+
+Persistent context for **{{SYSTEM_NAME}} screen creation + live prototyping**. **Read `CONTEXT.md` first**
+— it has the full bootstrap (scope gate, project facts, skill table, critical rules). This file
+adds Claude-Code-specific workflow notes + the current working state, and is loaded automatically
+by Claude Code on startup.
+
+## Scope (one line)
+This context **consumes** the published {{SYSTEM_NAME}} library to build **consumer screens** (Figma file
+`{{CONSUMER_FIGMA_KEY}}`) + **coded prototypes** (`prototypes/`). The design system itself —
+tokens/components/variants, publish, drift — lives in the separate **`{{DS_REPO}}`**.
+A {{SYSTEM_NAME}} gap found while building routes **back** there; never hand-build a {{SYSTEM_NAME}} equivalent here.
+
+## Project quick-ref
+- Consumer file (write surface): `{{CONSUMER_FIGMA_KEY}}` ({{CONSUMER_FILE_NAME}})
+- {{SYSTEM_NAME}} source (READ-ONLY reference): `{{DS_FIGMA_KEY}}` — published by the DS context
+- {{SYSTEM_NAME}} version consumed: **{{DS_VERSION}}** (published {{DS_PUBLISHED_DATE}})
+- Standard mobile frame: {{FRAME_W}}×{{FRAME_H}}, bg `{{PAGE_BG_TOKEN}}`
+- Layout: `skills/` (screens + 3 read-only DS mirrors; `motion-design` is a global skill),
+  `kickoff-prompts/`, `prototypes/{{PROTOTYPE_NAME}}/`, `.claude/` (agents + commands + launch.json)
+
+## How to work efficiently here (hard-won lessons)
+1. **Compose {{SYSTEM_NAME}}, don't reinvent it.** Every drift bug comes from hand-building a row / amount
+   field / inner-screen header / dialog instead of instancing the {{SYSTEM_NAME}} component. About to do that
+   → STOP, use the component, or file a gap to the DS context (`{{DS_REPO}}`).
+2. **The published library is ground truth for keys.** Instantiate by published component key
+   (see `skills/ds-components.md`); `importComponentByKeyAsync` returns the last *published*
+   version. If a {{SYSTEM_NAME}} source edit isn't showing up, the DS context hasn't re-published yet.
+3. **The skill mirrors are read-only snapshots.** `ds-tokens.md`, `ds-components.md`,
+   `figma-gotchas.md` are vendored copies of DS-owned skills — refresh after each {{SYSTEM_NAME}} publish
+   (each file's header has the `cp` command); don't edit them here.
+4. **Three gates before handoff** — design-review lens (zero blockers) + Gotcha #27 binding audit
+   (zero unbound on NEW frames), both in Figma, THEN the **usability-validation gate**: usability-test
+   the flow as a coded prototype (task success / time-on-task / SEQ + heatmaps) before it goes live or
+   reaches product + engineering. The prototype is a gate, not an optional extra; a failure routes back
+   to `ux-designer` / `ui-designer`, not forward.
+5. **Figma via `use_figma`**: load the `figma-use` skill first + all {{FONTS}} weights before any text op;
+   render-verify each phase via screenshot (URL + `curl` + Read flow, never inline base64).
+6. **Coded prototypes are the usability gate, not a side quest.** Ordinary local dev (Vite), in-scope
+   here (unlike the DS context) — but their PURPOSE is to validate designs with real users before
+   handoff to product + engineering. Secrets (`prototypes/{{PROTOTYPE_NAME}}/.env`) + `.vercel` stay gitignored.
+7. Ignored files: `node_modules`, `dist`, `dist-ssr`, `.env`, `.env.local`, `.vercel`, `.DS_Store`.
+
+## Context-window hygiene
+- Prefer fresh sessions at phase boundaries; bootstrap from `CONTEXT.md` + the skill mirrors rather
+  than carrying a long conversation.
+- Use `git grep`/targeted reads, not whole-file dumps; delegate heavy searches/audits to subagents.
+- MCP minimalism: connect only Figma + GitHub (+ Notion if briefs live there); disconnect the rest.
+
+## Current working state — snapshot (prune as it ages)
+- **🆕 Scaffolded from template.** This context was generated from the studio-context template.
+  Scaffolding mirrors the sibling DS context: `CONTEXT.md` + `CLAUDE.md` (bootstrap), `README.md`,
+  `AGENTS-HANDOFF.md`, shared `DESIGN.md`, `skills/` (own `screens.md` + read-only mirrors of the 3
+  DS skills), `kickoff-prompts/`, `.claude/` (`ux-designer` + `ui-designer` + `flow-reviewer` +
+  `consumer-migrator` + `data-analyst` agents, `/design-review` + `/consumer-audit` + `/rebind` +
+  `/usability-report` commands, `launch.json`), and the `prototypes/{{PROTOTYPE_NAME}}` React/Vite
+  usability prototype.
+- **{{PROTOTYPE_NAME}} prototype** — {{PROTOTYPE_DESC}} usability prototype, {{SYSTEM_NAME}} DS, instrumented
+  (cohort separation + Microsoft Clarity heatmaps + PostHog time-on-task + SEQ + `/results` dashboard).
+- **Open dependency** — the read-only skill mirrors track {{SYSTEM_NAME}} **{{DS_VERSION}}**; after the DS context's
+  next publish, refresh them.
+
+## Maintenance
+On any screen-pattern change: update `skills/screens.md`, then commit + push. On a {{SYSTEM_NAME}}
+republish: refresh the 3 read-only skill mirrors (`cp ../{{DS_REPO}}/skills/<f> skills/<f>`,
+re-add the header), bump the consumed-version line in `CONTEXT.md`, **then run `consumer-migrator`
+(`/rebind`) to propagate the change across the consumer file + verify it's actually consumed**, commit + push.
+
+## Agent orchestration ({{SYSTEM_NAME}} screen-creation agents)
+
+This context is **screen + prototype only** — two role-based subagents (+ three supporting). On any
+task, decide the moment in the pipeline first, then delegate. Full map, pipeline, and operating
+rules: see `AGENTS-HANDOFF.md`.
+
+| Route to | When | Write surface |
+|---|---|---|
+| `ux-designer` | flows, IA, state matrices, interaction/a11y specs, research synthesis, acceptance criteria, functional microcopy — the brief, BEFORE pixels | specs only (no pixels) |
+| `ui-designer` | compose {{SYSTEM_NAME}} into pixel-perfect consumer screens, build-time design-review self-check, consumer drift sweep | consumer file `{{CONSUMER_FIGMA_KEY}}` |
+| `flow-reviewer` | INDEPENDENT heuristic evaluation of screens + flows (the `ux-flow-review` canon) — the usability gate | read-only review |
+| `consumer-migrator` | propagate a {{SYSTEM_NAME}} publish across consumer files (the `rebind` procedure) — confirm changes are consumed | consumer file(s) |
+| `data-analyst` | turn prototype analytics into screen-validation evidence (the `usability-analytics` canon) — feeds `ux-designer` | read-only analysis |
+| _separate context_ | author tokens/components/variants, publish {{SYSTEM_NAME}}, drift, manifest, spiels | NOT handled here — `{{DS_REPO}}` (`ds-steward` / `component-designer` / `brand-designer`) |
+| `usability-prototype` skill | build/instrument the coded prototype + run the **required usability gate** before handoff | `prototypes/` (React/Vite) |
+
+**The define→build→validate→handoff pipeline:** `ux-designer` defines the brief (flows + state
+matrix + acceptance criteria + functional copy) → `ui-designer` composes {{SYSTEM_NAME}} into the screen and
+clears the two Figma gates → `flow-reviewer` runs the independent heuristic evaluation → the flow is
+**usability-tested as a coded prototype** → `data-analyst` benchmarks the behavior (the
+`usability-analytics` canon) → `ux-designer` **validates** the screens against that evidence → the
+**validated** screens hand off to product + engineering / go live. A {{SYSTEM_NAME}} gap → request to the DS
+context, never a hand-built equivalent.
+
+**Three shared building blocks** keep the system honest:
+- **`ux-flow-review` skill** — the single heuristic-evaluation canon (5 frameworks + {{DOMAIN}} + WCAG
+  2.2 AA). `ui-designer` (self-check), `flow-reviewer` (gate), and `/design-review` all load it — no
+  restating the frameworks anywhere, or they drift.
+- **`usability-analytics` skill + `data-analyst` agent** — the empirical validation loop. Turns the
+  prototype's PostHog/Clarity/SEQ instrumentation into benchmarked evidence (task success / time /
+  SEQ / drop-off vs UX norms, quant triangulated with Clarity replays) so the `ux-designer` validates
+  screens with DATA, not opinion. Expert review (`ux-flow-review`) + empirical data are complementary.
+- **`rebind` skill + `consumer-migrator` agent** — the consume-verification loop. After a DS
+  publish, swap stale consumer instances onto the fresh main (Gotcha #20), rebind overrides
+  (#21/#28), re-audit (#27/#28), verify. This is how we KNOW a {{SYSTEM_NAME}} change is actually being used.
+
+Operating rules (full detail in AGENTS-HANDOFF.md):
+- Plan Mode is the gate before any consumer-file write — plan in `yaml` (instances + keys + bindings
+  + honest gaps), approve, then build incrementally with render-verification.
+- Load `skills/*.md` + `DESIGN.md` fresh, never from memory. Refresh the read-only DS mirrors after a
+  {{SYSTEM_NAME}} publish.
+- Apply the `DESIGN.md` §6 heuristic canon at the **screen + flow layer** (mapping in
+  `AGENTS-HANDOFF.md`) — the system/component slices belong to the DS context.
+
+Slash commands (thin wrappers that delegate to the agents — never duplicate the workflow, or it drifts):
+`/design-review` (→ flow-reviewer) · `/consumer-audit` (→ ui-designer) · `/rebind` (→ consumer-migrator) · `/usability-report` (→ data-analyst)

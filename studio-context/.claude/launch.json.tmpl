@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "{{PROTOTYPE_NAME}}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "prototypes/{{PROTOTYPE_NAME}}", "run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "{{PROTOTYPE_NAME}}-prod",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "prototypes/{{PROTOTYPE_NAME}}", "run", "preview", "--", "--port", "4180"],
+      "port": 4180
+    }
+  ]
+}

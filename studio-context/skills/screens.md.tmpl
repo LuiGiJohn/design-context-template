@@ -1,0 +1,106 @@
+# screens
+
+**Version**: v0.1 (scaffold)
+
+> ⛔ **TODO — SCAFFOLD, ADD YOUR RECIPES.** This is the studio context's screen-building cookbook:
+> how to compose {{SYSTEM_NAME}} components + tokens into consumer screens in `{{CONSUMER_FIGMA_KEY}}`
+> ({{CONSUMER_FILE_NAME}}). The standard frame setup + the generic chrome/scroll patterns below are
+> ready to use; the **Recipes** section is empty — add one worked recipe per recurring screen pattern
+> as you build it (and remember: **compose {{SYSTEM_NAME}}, never hand-build a component equivalent** —
+> a gap routes to the DS context, `{{DS_REPO}}`).
+>
+> On any screen-pattern change: update this file, then commit + push.
+
+Recipes and patterns for building consumer screens using {{SYSTEM_NAME}} components and tokens.
+Load `skills/ds-tokens.md` + `skills/ds-components.md` (the read-only {{SYSTEM_NAME}} mirrors) for the
+actual token IDs + component keys this file references.
+
+---
+
+## Standard screen frame (system-agnostic — keep)
+
+`{{FRAME_W}}×{{FRAME_H}}` mobile frame. Bind bg to `{{PAGE_BG_TOKEN}}`. `clipsContent = true`.
+`overflowDirection = "VERTICAL"` if content scrolls, otherwise `"NONE"`.
+
+Chrome elements (Status Bar, Bottom Nav, Home Indicator) live at the **END** of the children list with
+`numberOfFixedChildren` set to the count of chrome elements (it counts from the END — see
+`skills/figma-gotchas.md` Gotcha #16).
+
+```javascript
+const screen = figma.createFrame();
+screen.name = "Profile / Default";              // "<Flow> / <Screen>" — prefix drives section grouping
+screen.resize({{FRAME_W}}, {{FRAME_H}});
+bindFill(screen, tokens.pageBg);                // {{PAGE_BG_TOKEN}}
+screen.clipsContent = true;
+// ... build content first ...
+// ... then append chrome at the END ...
+screen.numberOfFixedChildren = 2;               // e.g. Status Bar + Home Indicator
+screen.overflowDirection = "NONE";              // "VERTICAL" if the content scrolls
+```
+
+## Section organization (system-agnostic — keep)
+
+Group related screens horizontally in a SECTION node, one section per flow:
+- Section width = 80 padding + N × {{FRAME_W}} + (N−1) × 80 gap + 80 padding
+- Section height = 80 + {{FRAME_H}} + 80
+- Each screen at section-relative `(80 + i × ({{FRAME_W}} + 80), 80)` for `i = 0..N−1`
+- `SECTION.appendChild` reinterprets x/y as section-relative — re-assign after appending (Gotcha #15).
+
+(The `relayout` / `flow-layout` skill automates this — group by the flow prefix before the first " / ".)
+
+## Scroll pattern (system-agnostic — keep)
+
+- Screen frame: fixed `width/height` + `clipsContent = true`.
+- Chrome at the END of children; `numberOfFixedChildren` = chrome count (counts from the end).
+- `overflowDirection = "VERTICAL"` when content overflows, `"NONE"` otherwise.
+- `scrollBehavior` does NOT exist in the current Plugin API (Gotcha #16).
+
+## Layer / z-order (system-agnostic — keep)
+
+Layer order is the children array order: first child renders at back, last at front. For overlays
+(modals, tooltips), put the scrim mid-stack and the chrome (Status Bar, Home Indicator) at the top.
+
+## Render-verify checklist (system-agnostic — keep)
+
+1. `figma_get_component_image` on the new screen (never inline base64).
+2. Verify: layout aligned, colors render (no purple "missing variable"), text wraps, no clipping,
+   chrome at correct z-order.
+3. **Binding audit (Gotcha #27)** on every NEW frame you built (not {{SYSTEM_NAME}} instance internals):
+   non-white/black fills bound, non-zero radii → `Border-Radius/*`, non-zero padding/itemSpacing →
+   `Scale/*`, every TEXT node has a `textStyleId`, visible stroke weights → `Border-Width/*`.
+4. **Instance check** — every visible instance points to a published {{SYSTEM_NAME}} component, not a
+   stale local/foreign main.
+
+---
+
+## Recipes — add yours
+
+> One block per recurring pattern. Document: which {{SYSTEM_NAME}} component(s) to instance, the keys
+> (from `skills/ds-components.md`), the props/overrides to set, and any token bindings. Always prefer a
+> {{SYSTEM_NAME}} instance over a hand-built frame.
+
+### <Pattern name> (example slot — replace)
+
+**When:** <the screen situation this covers>
+**Compose:** <{{SYSTEM_NAME}} component(s) + published key(s)>
+
+```javascript
+// 1. import the published main by key (from skills/ds-components.md)
+const main = await figma.importComponentByKeyAsync("<40-hex-key>");
+const inst = main.createInstance();
+
+// 2. set props / overrides
+inst.setProperties({ /* "Label": "...", "Show Trailing": false, ... */ });
+
+// 3. re-bind anything a swap reset (vectors → Gotcha #21; refs → Gotcha #28)
+// 4. append into the screen / section, then render-verify
+```
+
+**Notes / gaps:** <anything {{SYSTEM_NAME}} can't do yet → route to {{DS_REPO}} as a gap>
+
+---
+
+## Changelog
+
+- **v0.1**: scaffold — standard frame setup, section/scroll/z-order + render-verify patterns,
+  one empty recipe slot. Populate the Recipes section as screens get built.

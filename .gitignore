@@ -1,0 +1,10 @@
+# template scratch / tooling
+node_modules/
+package.json
+package-lock.json
+.DS_Store
+
+# never commit a project's filled-in config or a local render
+# (project.config.yaml ships blank; copy it per project and fill outside the template)
+/render-check/
+/render-build/

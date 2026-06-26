@@ -1,0 +1,11 @@
+---
+description: Compare the {{SYSTEM_NAME}} manifest against actual Figma state
+argument-hint: [optional: path to inventory-actual.json]
+---
+Use the **ds-steward** subagent to run the drift checker:
+`python tools/doc-drift-checker.py manifest/manifest-{{DS_VERSION}}.json ${ARGUMENTS:-inventory-actual.json}`
+
+Report missing / extra / drift, and translate the diff into which `skills/*.md` and
+manifest rows are now wrong. If drift is found, propose the additive doc fix and offer to
+commit it — do not let the skills go stale. Drift = the system lying about itself; closing it
+is §6 Rams honest + long-lasting (the docs match the *published* reality).

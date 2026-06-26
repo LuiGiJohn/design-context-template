@@ -1,0 +1,56 @@
+# project.config.example.yaml — a fully worked example (the original APS / Aster Pay setup).
+# Copy the shape, not the values. This is `ds_mode: consume` because APS was already published.
+
+ds_mode: consume
+
+project:
+  name:             "Aster Pay"
+  system_name:      "APS"
+  system_full_name: "Aster Pay Interface System"
+  brand_shorthand:  "AP"
+  parent_org:       "Aster Financial"
+  domain:           "fintech"
+  github_owner:     "LuiGiJohn"
+
+design_system:
+  figma_source_key: "AbCdEf1234567890GhIjKl"
+  library_key:      "lk-0000example0000example0000example0000example0000example0000"
+  version:          "v0.9"
+  published_date:   "2026-05-21"
+  fonts:            "Work Sans (400/500/600/700) + Inter"
+  token_prefixes:   ["Surface", "Text", "Border", "Icon", "Scale", "Border-Radius", "Border-Width"]
+
+consumer:
+  figma_file_key:  "MnOpQr0987654321StUvWx"
+  file_name:       "AP-Onboarding-Screens"
+  frame:
+    width:    402
+    height:   874
+    bg_token: "Surface/Page"
+
+prototype:
+  name:        "ap-app-flow"
+  description: "Aster Pay returning-user login → dashboard"
+  analytics:
+    posthog_key_env:  "VITE_POSTHOG_KEY"
+    posthog_host_env: "VITE_POSTHOG_HOST"
+    clarity_env:      "VITE_CLARITY_ID"
+
+repos:
+  ds_context:     "aps-claude-context"
+  studio_context: "aps-studio-context"
+
+user_preferences:
+  methodology:   "Atomic Design, WCAG 2.2 AA, semantic HTML + ARIA by default"
+  communication: "Lead-to-peer. Skip apologies, filler, hedging. Brief and direct."
+  code_style:    "Clean, exemplary, JSDoc on complex logic. Show diffs for minor fixes."
+  mentorship:    "Mentors junior designers; output should be documentation-worthy."
+  honesty:       "Direct disclosure of constraints, gotchas, limitations. No oversell."
+  format:        "yaml blocks for planning/decisions; inline prose for execution. No tappable buttons."
+
+# ── A second example, abbreviated — a NEW design system (build mode) ──────────
+# ds_mode: build
+# project: { name: "Aster Health", system_name: "AHDS", brand_shorthand: "AH", domain: "healthcare booking", ... }
+# design_system: { figma_source_key: "", library_key: "", version: "v0.1", published_date: "", fonts: "Inter (400/500/600/700)" }
+#   → figma_source_key + library_key start empty; init creates the source file and you publish v0.1,
+#     then paste the keys back and re-run /init-project (it's idempotent).
