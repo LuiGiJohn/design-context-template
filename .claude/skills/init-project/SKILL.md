@@ -57,21 +57,25 @@ For each of `ds-context/` and `studio-context/`, copy the tree into the target r
 - Preserve directory structure and `.claude/` layout exactly.
 - If `{{PARENT_ORG}}` is blank, also remove the now-empty "(an `<org>` …)" parenthetical it leaves behind.
 
-## 3 · Mode-specific wiring (`ds_mode`)
-**consume** — a published DS already exists:
-- Keep the studio's `skills/` **mirrors** (`ds-tokens.md`, `ds-components.md`, `figma-gotchas.md`).
-  Their header note says "read-only snapshot; refresh after each publish". Leave them as scaffolds with
-  a TODO banner: the user runs the DS context's inventory snippet against `figma_source_key` to populate them.
-- The studio `CONTEXT.md` "Project facts" shows the real `library_key` + `version` and the consume banner.
-- DS context is still rendered (you may need to author *additions*), but its README leads with
-  "consuming an existing system — author only deltas."
+## 3 · Verify mode rendered correctly (`ds_mode`)
+**The templates self-wire by mode — do NOT hand-inject banners.** Every `.tmpl` already carries the
+`{{DS_MODE}}` value and the empty-key fallbacks, so substitution alone produces the right per-mode
+text. Your job here is to **verify** the render, not to edit it. After Step 2, confirm:
 
-**build** — no DS yet:
-- DS context leads: "bootstrapping a new design system from scratch." `library_key` shows
-  `(set after first publish)`; `figma_source_key` shows `(created during setup)`.
-- Studio's mirrors are rendered as **empty scaffolds** with a banner: "DS not yet published — mirrors
-  fill in after the DS context's first publish, then run /rebind."
-- Add a one-line note in the studio README: screens may stub components until the DS publishes them.
+**consume** — a published DS already exists (`library_key` + `figma_source_key` were required):
+- studio `CONTEXT.md` "Project facts" shows the real `library_key` + `version` and the consume banner.
+- the studio `skills/` mirrors (`ds-tokens.md`, `ds-components.md`, `figma-gotchas.md`) render with their
+  dual-mode banner intact — they are read-only snapshots the user populates by running the DS context's
+  `tools/inventory-snippet.js` against `figma_source_key`.
+
+**build** — no DS yet (`library_key`/`figma_source_key` may be blank):
+- DS + studio `CONTEXT.md` show `library_key → (set after first publish)` and
+  `figma_source_key → (created during setup)`.
+- the studio mirrors show the same dual-mode banner — its "in build mode this is empty until the DS
+  context's first publish" line is the live guidance; nothing to add.
+
+If any of the above did NOT render (e.g. a banner missing, a key not substituted), that's a template
+bug — fix the `.tmpl`, not the rendered copy, so the next project inherits the fix.
 
 ## 4 · Prototype harness
 The instrumented React/Vite usability harness is **not vendored** in this template — it is bundled by
