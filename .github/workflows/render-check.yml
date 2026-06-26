@@ -1,0 +1,66 @@
+name: render-check
+
+# Guards the template against rot: every push/PR renders both ds_mode paths and asserts the
+# output has no leftover .tmpl files and no unsubstituted {{TOKENS}}. If someone adds a placeholder
+# to a .tmpl without wiring it into project.config.yaml + the renderer map, this fails here —
+# not in the next project's first init.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save js-yaml
+
+      - name: Render the consume-mode example
+        run: node scripts/init-project.mjs --config project.config.example.yaml --out "$RUNNER_TEMP/consume"
+
+      - name: Render a build-mode config (empty DS keys)
+        run: |
+          cat > "$RUNNER_TEMP/build.yaml" <<'YAML'
+          ds_mode: build
+          project: {name: "CI Build", system_name: "CIDS", system_full_name: "CI Design System", brand_shorthand: "CI", parent_org: "", domain: "demo", github_owner: "ci"}
+          design_system: {figma_source_key: "", library_key: "", version: "v0.1", published_date: "", fonts: "Inter (400/500/600/700)", token_prefixes: ["Surface","Text","Border"]}
+          consumer: {figma_file_key: "ci-consumer", file_name: "CI-Screens", frame: {width: 390, height: 844, bg_token: "Surface/Page"}}
+          prototype: {name: "ci-flow", description: "demo flow", analytics: {posthog_key_env: "VITE_POSTHOG_KEY", posthog_host_env: "VITE_POSTHOG_HOST", clarity_env: "VITE_CLARITY_ID"}}
+          repos: {ds_context: "ci-ds", studio_context: "ci-studio"}
+          user_preferences: {methodology: "x", communication: "x", code_style: "x", mentorship: "x", honesty: "x", format: "x"}
+          YAML
+          node scripts/init-project.mjs --config "$RUNNER_TEMP/build.yaml" --out "$RUNNER_TEMP/build"
+
+      - name: Assert clean render (no .tmpl, no unsubstituted tokens)
+        run: |
+          fail=0
+          for dir in "$RUNNER_TEMP/consume" "$RUNNER_TEMP/build"; do
+            tmpl=$(find "$dir" -name '*.tmpl' | wc -l | tr -d ' ')
+            toks=$(grep -rn '{{[A-Z_]' "$dir" | wc -l | tr -d ' ')
+            echo "$dir → leftover .tmpl: $tmpl · unsubstituted tokens: $toks"
+            [ "$tmpl" -eq 0 ] || fail=1
+            [ "$toks" -eq 0 ] || fail=1
+          done
+          exit $fail
+
+      - name: Assert consume-mode validation gate rejects missing keys
+        run: |
+          cat > "$RUNNER_TEMP/bad.yaml" <<'YAML'
+          ds_mode: consume
+          project: {name: "X", system_name: "X", system_full_name: "X", brand_shorthand: "X", parent_org: "", domain: "x", github_owner: "x"}
+          design_system: {figma_source_key: "", library_key: "", version: "v0.1", published_date: "", fonts: "Inter", token_prefixes: ["Surface"]}
+          consumer: {figma_file_key: "k", file_name: "x", frame: {width: 390, height: 844, bg_token: "Surface/Page"}}
+          prototype: {name: "x", description: "x", analytics: {posthog_key_env: "VITE_POSTHOG_KEY", posthog_host_env: "VITE_POSTHOG_HOST", clarity_env: "VITE_CLARITY_ID"}}
+          repos: {ds_context: "x-ds", studio_context: "x-studio"}
+          user_preferences: {methodology: "x", communication: "x", code_style: "x", mentorship: "x", honesty: "x", format: "x"}
+          YAML
+          if node scripts/init-project.mjs --config "$RUNNER_TEMP/bad.yaml" --out "$RUNNER_TEMP/bad" 2>/dev/null; then
+            echo "FAIL: gate accepted a consume config with missing keys"; exit 1
+          else
+            echo "OK: gate rejected missing keys"; fi

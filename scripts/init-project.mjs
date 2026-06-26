@@ -4,12 +4,13 @@
  *
  * Reads project.config.yaml, renders ds-context/ + studio-context/ into the target repos,
  * substituting {{PLACEHOLDER}} tokens and stripping the .tmpl suffix. Non-.tmpl files are
- * copied verbatim. Mode-specific banners are handled by the skill, not here — this script is
- * a mechanical renderer for users who'd rather not drive the skill.
+ * copied verbatim. Mode-specific text (consume/build banners, empty-key fallbacks) is baked into
+ * the .tmpl files and resolves through substitution — no post-processing here or in the skill.
  *
- * Usage:  node scripts/init-project.mjs [--out <dir>] [--dry]
- *   --out  target parent dir for the two repos (default: template's parent dir)
- *   --dry  print what would be written, write nothing
+ * Usage:  node scripts/init-project.mjs [--out <dir>] [--config <path>] [--dry]
+ *   --out     target parent dir for the two repos (default: template's parent dir)
+ *   --config  config file to read (default: project.config.yaml) — CI points this at the example
+ *   --dry     print what would be written, write nothing
  *
  * Requires js-yaml:  npm i -g js-yaml   (or run from a dir where it's installed)
  * If js-yaml is unavailable, drive the /init-project skill instead — Claude parses YAML natively.
@@ -22,12 +23,13 @@ const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const args = process.argv.slice(2);
 const DRY = args.includes('--dry');
 const OUT = (() => { const i = args.indexOf('--out'); return i >= 0 ? args[i + 1] : dirname(ROOT); })();
+const CFG = (() => { const i = args.indexOf('--config'); return i >= 0 ? args[i + 1] : join(ROOT, 'project.config.yaml'); })();
 
 let yaml;
 try { const m = await import('js-yaml'); yaml = m.default ?? m; }
 catch { console.error('✗ js-yaml not found. `npm i -g js-yaml`, or run the /init-project skill instead.'); process.exit(1); }
 
-const cfg = yaml.load(readFileSync(join(ROOT, 'project.config.yaml'), 'utf8'));
+const cfg = yaml.load(readFileSync(CFG, 'utf8'));
 
 // ── placeholder map ──────────────────────────────────────────────────────────
 const p = cfg.project, d = cfg.design_system, c = cfg.consumer, pr = cfg.prototype, r = cfg.repos, u = cfg.user_preferences;
