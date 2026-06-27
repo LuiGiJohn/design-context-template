@@ -38,6 +38,7 @@ That's it. Everything project-specific lives in `project.config.yaml`; everythin
 ## What's in the box
 
 ```
+HANDOFF.md                     ← copy-paste kickoff prompt for a fresh session (start here)
 project.config.yaml            ← fill this in (the single source of truth)
 project.config.example.yaml    ← the APS setup, worked end-to-end
 TEMPLATE-GUIDE.md              ← placeholder reference + how to extend/update the template
