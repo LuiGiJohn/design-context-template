@@ -16,8 +16,8 @@ This repo solves that. A single bootstrap URL gives Claude everything it needs.
 
 1. Open this repo in **Claude Code** — it loads `CLAUDE.md` (→ `CONTEXT.md`) automatically on startup.
 2. `CONTEXT.md` + `CLAUDE.md` carry the project facts, skill table, and critical rules; the `.claude/`
-   **agents** (`ds-steward`, `component-designer`, `brand-designer`) + **commands**
-   (`/design-system-check`, `/binding-audit`, `/drift-check`) carry the workflows.
+   **agents** (`ds-steward`, `component-designer`, `brand-designer`, `publisher`) + **commands**
+   (`/design-system-check`, `/binding-audit`, `/drift-check`, `/publish`) carry the workflows.
 3. Load `skills/*.md` per task and delegate to the right agent — no copy-paste, no scenario files.
 
 When {{SYSTEM_NAME}} changes (new tokens, component updates, etc.), update the relevant skill files +
@@ -47,8 +47,8 @@ Claude.ai chat as a reference if you ever work outside Claude Code.)
 ├── docs/
 │   └── sessions/                    ← chronological session notes (archive)
 └── .claude/                         ← Claude Code agents + commands (the workflows)
-    ├── agents/                      ds-steward.md · component-designer.md · brand-designer.md
-    └── commands/                    design-system-check · binding-audit · drift-check
+    ├── agents/                      ds-steward.md · component-designer.md · brand-designer.md · publisher.md
+    └── commands/                    design-system-check · binding-audit · drift-check · publish
 ```
 
 ## Starting a session

@@ -109,8 +109,11 @@ what ratio, any known dark-only treatments) as they're confirmed — don't carry
 Beyond the system benchmarks (§3), {{SYSTEM_NAME}} evaluates design against five established heuristic
 frameworks. **DESIGN.md still wins on conflict (§3.1)** — these inform the agents' lenses, they
 don't override {{SYSTEM_NAME}} rulings. Apply each **at the layer it governs**: the system / component /
-brand parts run in this context; several principles are screen- and flow-level and therefore
-belong to the **separate screen-creation context**, not this one.
+brand parts run in this context; several principles are screen- and flow-level — including screen-level
+**visual-composition craft** (layout · hierarchy · rhythm · focal point; adapt a reference on-brand,
+never copy) — and therefore belong to the **separate screen-creation context**, not this one. Brand
+*token* decisions stay here (`brand-designer`); how those tokens are *composed* into a screen is the
+screen-creation context's creative-direction stage.
 
 - **Dieter Rams — 10 Principles for Good Design** — the *ethos* for the whole system: useful,
   understandable, unobtrusive, honest, thorough to the last detail, long-lasting, and **as little
@@ -138,8 +141,9 @@ belong to the **separate screen-creation context**, not this one.
 |---|---|---|
 | Token / system ethos | Rams (restraint, honesty, thoroughness); Tognazzini Color | `ds-steward` |
 | Component interaction | Shneiderman (consistency, feedback, error/reversal, memory load); Gerhardt-Powals (reduce uncertainty, meaningful aids); Weinschenk (accessibility, error prevention, feedback) | `ds-steward` |
-| Brand / expression | Rams (innovative, aesthetic, unobtrusive, honest, long-lasting); Tognazzini Color | `brand-designer` |
+| Brand / expression | Rams (innovative, aesthetic, unobtrusive, honest, long-lasting); Tognazzini Color — as *token* decisions | `brand-designer` |
 | Screen / flow | Shneiderman (closure, shortcuts, locus of control); Tognazzini (anticipation, autonomy, navigation, explorability, efficiency); Gerhardt-Powals (fuse data, automate workload); Weinschenk (navigation, system capabilities) | **separate screen-creation context** |
+| Screen visual composition | Rams (aesthetic, unobtrusive, as little design as possible — at the screen layer); Gestalt (visual hierarchy · focal point · spacing rhythm) — adapt-not-copy, inside the token/brand fence | **separate screen-creation context** (creative-direction stage) |
 
 **Operationalized per pipeline step** in `AGENTS-HANDOFF.md` → *Heuristic canon per pipeline step*:
 which slice fires at the brand decision · tokenize/build/bind · binding-gate/publish · drift-check/commit.

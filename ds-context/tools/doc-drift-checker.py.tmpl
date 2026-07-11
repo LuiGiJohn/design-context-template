@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-APS Documentation Drift Checker
+{{SYSTEM_NAME}} Documentation Drift Checker
 
-Compares the CURATED APS manifest (manifest/aps-vX.Y.json) against a live
-inventory of the APS Figma source and reports drift.
+Compares the CURATED {{SYSTEM_NAME}} manifest (manifest/manifest-{{DS_VERSION}}.json) against a live
+inventory of the {{SYSTEM_NAME}} Figma source and reports drift.
 
 The manifest is a curated document — it does NOT enumerate every variable or
 component. So this checker validates exactly what the manifest asserts:
@@ -20,17 +20,17 @@ component. So this checker validates exactly what the manifest asserts:
   of documented UI sets (e.g. 27), while the live file also contains many icon
   and illustration sets (e.g. 122).
 
-The "actual" JSON is produced by tools/aps-inventory-snippet.js run via a
-Figma use_figma call against the APS source. That snippet captures each
+The "actual" JSON is produced by tools/inventory-snippet.js run via a
+Figma use_figma call against the {{SYSTEM_NAME}} source. That snippet captures each
 variable's `id` (for keyToken validation) and `name`, every component/variant
 `key`, and per-collection membership.
 
 Usage:
-    python aps-doc-drift-checker.py path/to/aps-vX.Y.json path/to/aps-actual.json
+    python doc-drift-checker.py path/to/manifest-{{DS_VERSION}}.json path/to/actual.json
 
 Exit code: 0 if CLEAN, 1 if drift detected (CI-friendly).
 
-Author: APS design system tooling
+Author: {{SYSTEM_NAME}} design system tooling
 """
 
 import json
@@ -95,7 +95,7 @@ def check_drift(manifest: dict, actual: dict) -> dict:
         exp = mc.get("variableCount")
         act = actual_coll_counts.get(name)
         if act is None:
-            coll_issues.append({"collection": name, "issue": "missing in APS"})
+            coll_issues.append({"collection": name, "issue": "missing in {{SYSTEM_NAME}}"})
         elif exp is not None and exp != act:
             coll_issues.append({"collection": name, "issue": "count differs",
                                 "documented": exp, "actual": act})
@@ -167,7 +167,7 @@ def check_drift(manifest: dict, actual: dict) -> dict:
 def format_report(report: dict) -> str:
     lines = []
     lines.append("=" * 70)
-    lines.append(f"APS Documentation Drift Report — Status: {report['status']}")
+    lines.append(f"{{SYSTEM_NAME}} Documentation Drift Report — Status: {report['status']}")
     lines.append(f"Total drift items: {report['total_drift']}")
     lines.append("=" * 70)
 
@@ -179,7 +179,7 @@ def format_report(report: dict) -> str:
         if "checked" in s:
             lines.append(f"  checked: {s['checked']}")
         if s.get("missing_in_actual"):
-            lines.append("  ⚠️  missing in APS (documented but not found):")
+            lines.append("  ⚠️  missing in {{SYSTEM_NAME}} (documented but not found):")
             for item in s["missing_in_actual"]:
                 lines.append(f"    - {item}")
         if s.get("issues"):

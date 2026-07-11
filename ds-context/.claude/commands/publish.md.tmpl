@@ -1,0 +1,15 @@
+---
+description: Publish the {{SYSTEM_NAME}} library via the Figma desktop UI (screen-driven; confirms before the click)
+argument-hint: (none — publishes the pending, audited change)
+---
+Use the **publisher** subagent to publish the pending {{SYSTEM_NAME}} library change.
+
+It pre-flights that there is a clean, audited, `republished:false` entry in
+`manifest/manifest-{{DS_VERSION}}.json`; drives the **Figma desktop app** via computer-use to open the
+**Publish library changes** modal; fills a description from the patch `scope`; and
+**confirms the change list with you before the final click** (Critical Rule #1 — the Plugin
+API can't publish). After you reply `go` and it publishes, it hands to **ds-steward** to flip
+`republished:true`, verify by import-by-key, and commit.
+
+Do NOT publish if the binding audit isn't clean or nothing is pending — stop and report.
+Figma must be the desktop app (not a browser tab). Always confirm before the final click.

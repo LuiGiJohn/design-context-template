@@ -14,7 +14,7 @@ A {{SYSTEM_NAME}} gap found while building routes **back** there; never hand-bui
 ## Project quick-ref
 - Consumer file (write surface): `{{CONSUMER_FIGMA_KEY}}` ({{CONSUMER_FILE_NAME}})
 - {{SYSTEM_NAME}} source (READ-ONLY reference): `{{DS_FIGMA_KEY}}` — published by the DS context
-- {{SYSTEM_NAME}} version consumed: **{{DS_VERSION}}** (published {{DS_PUBLISHED_DATE}})
+- {{SYSTEM_NAME}} version consumed: **{{DS_VERSION}}** ({{DS_PUBLISHED_DATE}})
 - Standard mobile frame: {{FRAME_W}}×{{FRAME_H}}, bg `{{PAGE_BG_TOKEN}}`
 - Layout: `skills/` (screens + 3 read-only DS mirrors; `motion-design` is a global skill),
   `kickoff-prompts/`, `prototypes/{{PROTOTYPE_NAME}}/`, `.claude/` (agents + commands + launch.json)
@@ -32,8 +32,9 @@ A {{SYSTEM_NAME}} gap found while building routes **back** there; never hand-bui
 4. **Three gates before handoff** — design-review lens (zero blockers) + Gotcha #27 binding audit
    (zero unbound on NEW frames), both in Figma, THEN the **usability-validation gate**: usability-test
    the flow as a coded prototype (task success / time-on-task / SEQ + heatmaps) before it goes live or
-   reaches product + engineering. The prototype is a gate, not an optional extra; a failure routes back
-   to `ux-designer` / `ui-designer`, not forward.
+   reaches product + engineering. `product-designer` runs this gate against the business goal AND the CX.
+   The prototype is a gate, not an optional extra; a failure routes back to `product-designer` /
+   `ui-designer`, not forward.
 5. **Figma via `use_figma`**: load the `figma-use` skill first + all {{FONTS}} weights before any text op;
    render-verify each phase via screenshot (URL + `curl` + Read flow, never inline base64).
 6. **Coded prototypes are the usability gate, not a side quest.** Ordinary local dev (Vite), in-scope
@@ -51,10 +52,11 @@ A {{SYSTEM_NAME}} gap found while building routes **back** there; never hand-bui
 - **🆕 Scaffolded from template.** This context was generated from the studio-context template.
   Scaffolding mirrors the sibling DS context: `CONTEXT.md` + `CLAUDE.md` (bootstrap), `README.md`,
   `AGENTS-HANDOFF.md`, shared `DESIGN.md`, `skills/` (own `screens.md` + read-only mirrors of the 3
-  DS skills), `kickoff-prompts/`, `.claude/` (`ux-designer` + `ui-designer` + `flow-reviewer` +
-  `consumer-migrator` + `data-analyst` agents, `/design-review` + `/consumer-audit` + `/rebind` +
-  `/usability-report` commands, `launch.json`), and the `prototypes/{{PROTOTYPE_NAME}}` React/Vite
-  usability prototype.
+  DS skills + `flow-layout` + `visual-craft` + `figma-versioning`), `kickoff-prompts/`, `.claude/`
+  (`product-designer` + `art-director` + `ui-designer` + `flow-reviewer` + `consumer-migrator` +
+  `data-analyst` agents, `/design-review` + `/consumer-audit` + `/art-direction` + `/rebind` +
+  `/usability-report` + `/relayout` + `/checkpoint` + `/changelog` commands, `launch.json`), and the
+  `prototypes/{{PROTOTYPE_NAME}}` React/Vite usability prototype.
 - **{{PROTOTYPE_NAME}} prototype** — {{PROTOTYPE_DESC}} usability prototype, {{SYSTEM_NAME}} DS, instrumented
   (cohort separation + Microsoft Clarity heatmaps + PostHog time-on-task + SEQ + `/results` dashboard).
 - **Open dependency** — the read-only skill mirrors track {{SYSTEM_NAME}} **{{DS_VERSION}}**; after the DS context's
@@ -68,39 +70,53 @@ re-add the header), bump the consumed-version line in `CONTEXT.md`, **then run `
 
 ## Agent orchestration ({{SYSTEM_NAME}} screen-creation agents)
 
-This context is **screen + prototype only** — two role-based subagents (+ three supporting). On any
-task, decide the moment in the pipeline first, then delegate. Full map, pipeline, and operating
-rules: see `AGENTS-HANDOFF.md`.
+This context is **screen + prototype only** — two core role-based subagents (`product-designer`,
+`ui-designer`) + three supporting (`art-director` = creative direction, `flow-reviewer` = independent
+review, `consumer-migrator` = migration), plus `data-analyst` for the empirical loop. On any task,
+decide the moment in the pipeline first, then delegate. Full map, pipeline, and operating rules: see
+`AGENTS-HANDOFF.md`.
 
 | Route to | When | Write surface |
 |---|---|---|
-| `ux-designer` | flows, IA, state matrices, interaction/a11y specs, research synthesis, acceptance criteria, functional microcopy — the brief, BEFORE pixels | specs only (no pixels) |
+| `product-designer` | deconstruct the ask (business goal · metric · segment · JTBD · constraints · scope · CX criteria), then flows, IA, state matrices, interaction/a11y specs, research synthesis, acceptance criteria, functional microcopy — the brief, BEFORE pixels; runs the usability-validation gate | specs only (no pixels) |
+| `art-director` *(optional)* | creative direction from a reference/trend (the `visual-craft` canon) — deconstruct → filter through the token/brand fence → adapt-not-copy → 2–3 named directions → low-fi `Explorations` frames; hands a build spec to `ui-designer` | consumer file `Explorations / <flow>` (low-fi only) |
 | `ui-designer` | compose {{SYSTEM_NAME}} into pixel-perfect consumer screens, build-time design-review self-check, consumer drift sweep | consumer file `{{CONSUMER_FIGMA_KEY}}` |
 | `flow-reviewer` | INDEPENDENT heuristic evaluation of screens + flows (the `ux-flow-review` canon) — the usability gate | read-only review |
 | `consumer-migrator` | propagate a {{SYSTEM_NAME}} publish across consumer files (the `rebind` procedure) — confirm changes are consumed | consumer file(s) |
-| `data-analyst` | turn prototype analytics into screen-validation evidence (the `usability-analytics` canon) — feeds `ux-designer` | read-only analysis |
+| `data-analyst` | turn prototype analytics into screen-validation evidence (the `usability-analytics` canon) — feeds `product-designer` | read-only analysis |
 | _separate context_ | author tokens/components/variants, publish {{SYSTEM_NAME}}, drift, manifest, spiels | NOT handled here — `{{DS_REPO}}` (`ds-steward` / `component-designer` / `brand-designer`) |
 | `usability-prototype` skill | build/instrument the coded prototype + run the **required usability gate** before handoff | `prototypes/` (React/Vite) |
 
-**The define→build→validate→handoff pipeline:** `ux-designer` defines the brief (flows + state
-matrix + acceptance criteria + functional copy) → `ui-designer` composes {{SYSTEM_NAME}} into the screen and
-clears the two Figma gates → `flow-reviewer` runs the independent heuristic evaluation → the flow is
-**usability-tested as a coded prototype** → `data-analyst` benchmarks the behavior (the
-`usability-analytics` canon) → `ux-designer` **validates** the screens against that evidence → the
-**validated** screens hand off to product + engineering / go live. A {{SYSTEM_NAME}} gap → request to the DS
-context, never a hand-built equivalent.
+**The intake→define→(direct)→build→validate→handoff pipeline:** `product-designer` deconstructs the ask
+(business goal · metric · segment · JTBD · constraints · scope · CX criteria) and defines the brief
+(flows + state matrix + acceptance criteria + functional copy) → *optionally* `art-director` sets an
+on-brand visual direction from a reference/trend (the `visual-craft` canon) → `ui-designer` composes
+{{SYSTEM_NAME}} into the screen and clears the two Figma gates → `flow-reviewer` runs the independent heuristic
+evaluation → the flow is **usability-tested as a coded prototype** → `data-analyst` benchmarks the
+behavior (the `usability-analytics` canon) → `product-designer` **validates** the screens against that
+evidence, against the business goal AND CX → the **validated** screens hand off to product + engineering /
+go live. A {{SYSTEM_NAME}} gap → request to the DS context, never a hand-built equivalent.
 
-**Three shared building blocks** keep the system honest:
+**Shared building blocks** keep the system honest:
 - **`ux-flow-review` skill** — the single heuristic-evaluation canon (5 frameworks + {{DOMAIN}} + WCAG
   2.2 AA). `ui-designer` (self-check), `flow-reviewer` (gate), and `/design-review` all load it — no
   restating the frameworks anywhere, or they drift.
+- **`visual-craft` skill + `art-director` agent** — the creative-direction canon (deconstruct →
+  filter through the token/brand fence → adapt-not-copy → 2–3 named directions → low-fi Explorations).
+  The optional stage between `product-designer` and `ui-designer`; run via `/art-direction`. Aesthetics
+  never overrides usability/a11y, and a new-component need is a DS gap, never a hand-build.
 - **`usability-analytics` skill + `data-analyst` agent** — the empirical validation loop. Turns the
   prototype's PostHog/Clarity/SEQ instrumentation into benchmarked evidence (task success / time /
-  SEQ / drop-off vs UX norms, quant triangulated with Clarity replays) so the `ux-designer` validates
-  screens with DATA, not opinion. Expert review (`ux-flow-review`) + empirical data are complementary.
+  SEQ / drop-off vs UX norms, quant triangulated with Clarity replays) so the `product-designer`
+  validates screens with DATA, not opinion. Expert review (`ux-flow-review`) + empirical data are complementary.
 - **`rebind` skill + `consumer-migrator` agent** — the consume-verification loop. After a DS
   publish, swap stale consumer instances onto the fresh main (Gotcha #20), rebind overrides
   (#21/#28), re-audit (#27/#28), verify. This is how we KNOW a {{SYSTEM_NAME}} change is actually being used.
+- **`flow-layout` skill** — section/frame auto-layout by flow name; `ui-designer` runs it via `/relayout`.
+- **`figma-versioning` skill** (★ cross-cutting, **no agent of its own**) — named version-history
+  checkpoints on the consumer file, folded into `ui-designer` (`pre-build:` / `gate-pass:`),
+  `consumer-migrator` (`pre-rebind:` — the load-bearing one, before the instance swap), and
+  `art-director` (before writing Explorations); invoked directly via `/checkpoint` + `/changelog`.
 
 Operating rules (full detail in AGENTS-HANDOFF.md):
 - Plan Mode is the gate before any consumer-file write — plan in `yaml` (instances + keys + bindings
@@ -111,4 +127,4 @@ Operating rules (full detail in AGENTS-HANDOFF.md):
   `AGENTS-HANDOFF.md`) — the system/component slices belong to the DS context.
 
 Slash commands (thin wrappers that delegate to the agents — never duplicate the workflow, or it drifts):
-`/design-review` (→ flow-reviewer) · `/consumer-audit` (→ ui-designer) · `/rebind` (→ consumer-migrator) · `/usability-report` (→ data-analyst)
+`/design-review` (→ flow-reviewer) · `/consumer-audit` (→ ui-designer) · `/art-direction` (→ art-director) · `/rebind` (→ consumer-migrator) · `/usability-report` (→ data-analyst) · `/relayout` (→ ui-designer, runs flow-layout) · `/checkpoint` + `/changelog` (→ figma-versioning)

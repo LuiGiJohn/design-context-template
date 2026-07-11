@@ -24,8 +24,10 @@ took — without touching the {{SYSTEM_NAME}} source.
 
 ## Load fresh, never from memory
 Load the **`rebind`** skill (your procedure), `skills/figma-gotchas.md` (MANDATORY before
-any `use_figma` call — cites #20/#21/#27/#28), and `skills/ds-components.md` (published keys). Your
-input is: which component changed (key), what changed, and the scope (file(s)/page(s) to sweep).
+any `use_figma` call — cites #20/#21/#27/#28), `skills/ds-components.md` (published keys), and the
+**`figma-versioning`** skill (take a `pre-rebind:` checkpoint before the first swap — instance
+migration is the riskiest write in this context). Your input is: which component changed (key),
+what changed, and the scope (file(s)/page(s) to sweep).
 
 ## Workflow
 1. **Pre-flight (once).** Confirm the publish landed — `importComponentByKeyAsync(key)` returns the
@@ -35,7 +37,9 @@ input is: which component changed (key), what changed, and the scope (file(s)/pa
    (or a detached/remote-only copy). List node-IDs + the overrides each carries (labels, swapped
    glyphs/images, toggles, colored vectors).
 3. **Plan in `yaml`.** Per file/page: the instances to swap + overrides to re-apply + honest unknowns.
-   Plan Mode is the gate before the first write.
+   Plan Mode is the gate before the first write. Then take a **`pre-rebind:`** version checkpoint (via
+   `figma-versioning`) — the instance swap caches new layout, resets vector fills, and detaches property
+   refs, so a named restore point is the safety net if a migration goes sideways.
 4. **Migrate per instance** (the `rebind` loop): re-import → `swapComponent(fresh)` (#20) →
    rebind vector fills (#21) + property refs (#28, re-bind ref BEFORE setting value) → re-apply
    overrides → re-audit overrides (#27/#28, zero unbound) → render-verify via `figma_get_component_image`.

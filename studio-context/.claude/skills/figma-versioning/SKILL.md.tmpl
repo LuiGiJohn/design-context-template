@@ -1,0 +1,139 @@
+---
+name: figma-versioning
+description: >
+  Create and review named VERSION-HISTORY checkpoints on the consumer Figma file so risky writes are
+  reversible and milestones are labeled. Save a restore point before a ui-designer build and — most
+  importantly — before a consumer-migrator rebind (the instance swap is the riskiest write in the
+  studio); tag the version when the two Figma gates pass; mark a milestone when a new {{SYSTEM_NAME}}
+  version is consumed or a flow is validated. Also lists / diffs versions and generates a changelog
+  between two points. Checkpoints are created via `use_figma` (`figma.saveVersionHistoryAsync`);
+  reading / diff / changelog use the figma-console MCP version tools. Restore is a one-click,
+  fully-reversible action in Figma's version-history panel — confirm with a diff first. Trigger on
+  "checkpoint the file", "save a version", "version history", "tag this version", "snapshot before I
+  build/rebind", "what changed between versions", "changelog", "roll back / restore the Figma file".
+---
+
+# Figma version history — checkpoints for the consumer file
+
+Named versions are the studio's undo for irreversible Figma writes. {{SYSTEM_NAME}} work mutates a SHARED
+consumer file (`{{CONSUMER_FIGMA_KEY}}`), and the rebind swap especially can't be cleanly hand-reversed
+once instance layout has re-cached and property refs have detached. A checkpoint costs one call, never
+touches the canvas (it only adds a labeled restore point), and turns "I hope I can undo this" into a
+guaranteed roll-back. Run it on the consumer file. Load `skills/figma-gotchas.md` first when the
+surrounding work uses `use_figma`.
+
+> Scope: the CONSUMER file's version history only. The {{SYSTEM_NAME}} SOURCE file's versioning is the DS
+> context's concern — never checkpoint or restore `{{DS_FIGMA_KEY}}` from here.
+
+---
+
+## When to checkpoint (the discipline)
+
+| Moment | Who | Label prefix |
+|---|---|---|
+| Before a screen build | `ui-designer` | `pre-build:` |
+| When both Figma gates clear (design-review + binding audit) | `ui-designer` | `gate-pass:` |
+| **Before a rebind — the most important one** | `consumer-migrator` | `pre-rebind:` |
+| After a {{SYSTEM_NAME}} publish is consumed | rebind / migrator | `consume:` |
+| After the usability gate validates a flow | `product-designer` | `milestone:` |
+
+The `pre-rebind:` snapshot is the load-bearing one: `swapComponent` caches new layout, resets vector
+fills, and detaches property refs — painful and error-prone to reverse by hand. Snap before the first
+swap and the whole migration becomes one-click reversible.
+
+## Naming convention (the label contract)
+
+`<type>: <scope> — <context>`, type ∈ `{pre-build, gate-pass, pre-rebind, consume, milestone}`.
+
+```
+pre-build:  the-flow
+gate-pass:  the-flow — design-review + binding audit clear
+pre-rebind: a-component → vX.Y  (N instances)
+consume:    {{SYSTEM_NAME}} vX.Y
+milestone:  the-flow validated (SEQ X.X, task success XX%)
+```
+
+Keep the type prefix — versions then sort and scan, and a generated changelog reads as a clean timeline.
+
+## Create a checkpoint (via `use_figma`)
+
+Self-contained — set the title + description and run. It adds a restore point; it does **not** modify
+any node, so there is nothing to render-verify.
+
+```javascript
+// Named version-history checkpoint (run via use_figma)
+const v = await figma.saveVersionHistoryAsync(
+  "pre-rebind: a-component → vX.Y",                                  // title = the label
+  "Snapshot before swapping N instances onto the freshly published main." // description
+);
+console.log(v.id);   // VersionMetadata.id — record this in your report
+```
+
+> **Runtime caveat (verified on a live file).** `saveVersionHistoryAsync` is in the
+> Plugin API typings but some `use_figma` runtimes reject it at call time with **"figma.saveVersionHistoryAsync
+> is not yet supported"** — the function exists (a `typeof` guard passes) but throws when invoked.
+> When that happens, there is **no programmatic create path** here (the REST API has no
+> create-version endpoint either). Fall back to a **manual** named save in Figma's UI
+> (File → Save to version history / ⌥⌘S) for the checkpoint, and say so plainly. Probe before relying
+> on it: guard the call in `try/catch` and report "checkpoint unavailable in this runtime" rather than
+> failing the whole task — a checkpoint is a safety net, not the deliverable.
+
+## Read / compare / restore (figma-console MCP)
+
+Reading runs against the REST history, so these work outside `use_figma` — **but require a valid token
+with the `file_versions:read` scope** (OAuth) or the *Versions* Read permission (PAT). In practice this
+path returns **403 "Token expired"** when the figma-console MCP's token lacks the scope or has lapsed —
+if so, the read side is unavailable and you must say the changelog can't be produced this session. The
+tools, when authorized:
+
+- **List versions** — `figma_get_file_versions` (id · label · description · created_at · author).
+- **Changes since a version** — `figma_get_changes_since_version`.
+- **Diff two versions** — `figma_diff_versions`.
+- **Changelog between two points** — `figma_generate_changelog`.
+- **Blame a node** (who/when last changed it) — `figma_blame_node`.
+- **Restore** — identify the target with a diff first, then restore in Figma's version-history panel
+  (right-click the version → *Restore this version*). Restore **appends a new version** rather than
+  destroying history, so it is itself reversible — there is no destructive overwrite. Programmatic
+  node-copy "restores" are not the path; use the panel.
+
+## Integration (who calls this, when)
+
+- **`ui-designer`** — `pre-build:` right after Plan Mode approval, before the first write; `gate-pass:`
+  when both delivery gates clear.
+- **`consumer-migrator`** — `pre-rebind:` right after Plan Mode approval, before the first swap.
+- **After a DS publish lands + is consumed** — `consume:` (pairs with `rebind`).
+- **After the usability gate validates a flow** — `milestone:`.
+
+## Report (what to return)
+
+| Checkpoint label | Version id | Created | Trigger |
+|---|---|---|---|
+
+For a diff / changelog request, return the changelog grouped by version with the node-level changes,
+newest first, and name the two endpoints you compared.
+
+## When to use which surface
+
+- **This skill, inline** — one checkpoint / diff / changelog at a time in the main thread.
+- **Folded into `ui-designer` / `consumer-migrator`** — they call it automatically at their write
+  boundaries (the wiring), so you rarely invoke it standalone.
+- **No agent of its own** — version history is a cross-cutting safety + audit practice, not a pipeline
+  role. If a hands-off "audit the history → changelog timeline across files" pass is ever needed, that
+  would be a thin read-only agent loading THIS skill — not by default.
+
+## Common traps
+
+- **Checkpointing the {{SYSTEM_NAME}} SOURCE file** — out of scope; that's the DS context.
+- **Saving the snapshot AFTER a botched rebind** instead of before — defeats the purpose; the
+  pre-write checkpoint is the one that saves you.
+- **Treating "restore" as destructive** — it isn't; it appends a version. Still, diff first so you
+  restore the right one.
+- **Relying on Figma's automatic autosave versions** — they're unnamed and get pruned; named
+  checkpoints are what survive and scan.
+- **`figma_capture_screenshot` right after writes** can hang the Desktop Bridge — same gotcha as
+  elsewhere; checkpoint creation via `saveVersionHistoryAsync` is unaffected (it renders nothing).
+- **Read tools live on a different MCP server.** Checkpoint *creation* rides `use_figma`, but the
+  list / diff / changelog / blame tools (`figma_get_file_versions`, `figma_diff_versions`,
+  `figma_generate_changelog`, `figma_blame_node`) are **figma-console MCP** tools. If that server isn't
+  connected this session, the read side is unavailable while checkpointing still works — confirm
+  figma-console responds before promising a changelog, and say so plainly if it's absent.

@@ -3,7 +3,7 @@ name: usability-analytics
 description: >
   The canon for turning a prototype's behavioral analytics into screen-validation EVIDENCE — the
   metrics taxonomy, best-practice benchmark thresholds, and the analysis procedure the data-analyst
-  runs and the ux-designer validates against. Reads the ap-app-flow-style instrumentation (PostHog
+  runs and the product-designer validates against. Reads the ap-app-flow-style instrumentation (PostHog
   events/funnels/cohorts + time-on-task, Microsoft Clarity heatmaps/replays, post-task SEQ, the
   /results dashboard) and benchmarks task success, efficiency, satisfaction, and drop-off against
   documented UX norms — triangulating quant (PostHog) with qual (Clarity), with honest statistical
@@ -18,7 +18,7 @@ Microsoft Clarity + SEQ); the metrics taxonomy, benchmarks, and method are tool-
 
 How the studio context validates screens with DATA, not opinion. Drive it interactively, or via the
 `data-analyst` agent for a hands-off report. It turns the prototype's instrumentation into
-evidence the `ux-designer` uses to validate or revise screens — the empirical complement to
+evidence the `product-designer` uses to validate or revise screens — the empirical complement to
 `ux-flow-review` (expert heuristic evaluation).
 
 > Scope: behavioral analytics + UX benchmarks. This validates the *screen/flow*, not {{SYSTEM_NAME}}
@@ -72,7 +72,7 @@ tasks earn a higher bar.
 ## Method
 
 1. **Frame the question** — which screen/flow + task, which cohort(s), what hypothesis from the
-   usability test or `ux-designer` brief are we validating?
+   usability test or `product-designer` brief are we validating?
 2. **Pull the metrics** — run the relevant `analytics-queries.md` queries (or PostHog SQL); collect
    SEQ + Clarity signals. Exclude `is_test`.
 3. **Benchmark** — compare each metric to the threshold above; segment by `cohort` and by `method`.
@@ -109,7 +109,7 @@ each with the screen/step + recommendation.
 **4. Validation verdicts** — per screen/hypothesis: validated / invalidated / inconclusive, with the
 evidence and the confidence level.
 
-**5. Recommendations → `ux-designer`** — what to change or re-test, ranked; flag any DS-gap routing.
+**5. Recommendations → `product-designer`** — what to change or re-test, ranked; flag any DS-gap routing.
 
 **6. Data-quality caveats** — sample size, significance, biases, what we can't yet conclude.
 
@@ -117,5 +117,5 @@ evidence and the confidence level.
 
 - Evidence over impression; every claim cites the metric + n (and a replay where qual).
 - Don't over-claim significance on small n — say "directional / needs more data."
-- The data informs the `ux-designer`'s validation; the analyst doesn't redesign screens or touch {{SYSTEM_NAME}}.
+- The data informs the `product-designer`'s validation; the analyst doesn't redesign screens or touch {{SYSTEM_NAME}}.
 - A behavioral problem that traces to a component defect is a DS gap — route it, don't absorb it.

@@ -1,0 +1,12 @@
+---
+description: List / diff versions of the consumer Figma file and generate a changelog
+argument-hint: [version range or "latest"]
+---
+Invoke the **`figma-versioning`** skill to review the consumer file's ({{CONSUMER_FIGMA_KEY}}) version
+history for $ARGUMENTS: list versions (`figma_get_file_versions`), diff two points
+(`figma_diff_versions` / `figma_get_changes_since_version`), and generate a changelog
+(`figma_generate_changelog`); use `figma_blame_node` to attribute a single node's last change.
+
+Return the changelog grouped by version, newest first, naming the two endpoints compared. Read-only —
+to roll back, diff first, then restore in Figma's version-history panel (it appends a version, so it's
+reversible). Defer to the skill — do not restate the procedure here.

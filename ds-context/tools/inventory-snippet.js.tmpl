@@ -1,13 +1,13 @@
-// APS Inventory Snippet
-// Run this inside a use_figma call against the APS source file.
-// Outputs a JSON object representing the CURRENT state of APS, 
-// for comparison against the documented manifest via aps-doc-drift-checker.py
+// {{SYSTEM_NAME}} Inventory Snippet
+// Run this inside a use_figma call against the {{SYSTEM_NAME}} source file.
+// Outputs a JSON object representing the CURRENT state of {{SYSTEM_NAME}}, 
+// for comparison against the documented manifest via doc-drift-checker.py
 //
 // Usage:
-//   1. Open Figma with APS file (AbCdEf1234567890GhIjKl)
+//   1. Open Figma with {{SYSTEM_NAME}} file ({{DS_FIGMA_KEY}})
 //   2. Run via use_figma — copy the entire output
-//   3. Save output as aps-actual.json
-//   4. Run: python aps-doc-drift-checker.py aps-manifest.json aps-actual.json
+//   3. Save output as actual.json
+//   4. Run: python doc-drift-checker.py manifest.json actual.json
 
 const inventory = { variables: [], textStyles: [], components: [], generatedAt: new Date().toISOString() };
 
@@ -75,5 +75,5 @@ for (const page of figma.root.children) {
   }
 }
 
-// Output as JSON. Copy this to aps-actual.json.
+// Output as JSON. Copy this to actual.json.
 return { inventoryJSON: JSON.stringify(inventory, null, 2) };

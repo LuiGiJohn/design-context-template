@@ -1,0 +1,13 @@
+---
+description: Save a named version-history restore point on the consumer Figma file
+argument-hint: [label / "pre-build" / "pre-rebind" / "milestone"]
+---
+Invoke the **`figma-versioning`** skill to save a named checkpoint on the consumer file
+({{CONSUMER_FIGMA_KEY}}) for $ARGUMENTS. Pick the label type from the moment — `pre-build:` /
+`gate-pass:` / `pre-rebind:` / `consume:` / `milestone:` — and follow the `<type>: <scope> — <context>`
+convention. Create it via `use_figma` (`figma.saveVersionHistoryAsync`); it adds a restore point only,
+so there is nothing to render-verify. Return the checkpoint row (label · version id · created · trigger).
+
+This is the safety net before a risky write — a `pre-rebind:` snapshot before any instance swap
+especially. It has no agent of its own; it's a cross-cutting practice the write-surface agents already
+fold in. Defer to the skill — do not restate the procedure here.

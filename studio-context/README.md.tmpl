@@ -21,9 +21,9 @@ screens against {{SYSTEM_NAME}}.
 
 1. Open this repo in **Claude Code** — it loads `CLAUDE.md` (→ `CONTEXT.md`) automatically on startup.
 2. `CONTEXT.md` + `CLAUDE.md` carry the project facts, skill table, and critical rules; the `.claude/`
-   **agents** (`ux-designer`, `ui-designer`, `flow-reviewer`, `consumer-migrator`, `data-analyst`) +
-   **commands** (`/design-review`, `/consumer-audit`, `/rebind`, `/usability-report`) + invocable
-   **skills** (`ux-flow-review`, `usability-analytics`, `rebind`) carry the workflows.
+   **agents** (`product-designer`, `ui-designer`, `art-director`, `flow-reviewer`, `consumer-migrator`, `data-analyst`) +
+   **commands** (`/design-review`, `/consumer-audit`, `/rebind`, `/usability-report`, `/art-direction`, `/relayout`, `/checkpoint`, `/changelog`) + invocable
+   **skills** (`ux-flow-review`, `usability-analytics`, `rebind`, `flow-layout`, `visual-craft`, `figma-versioning`) carry the workflows.
 3. Load `skills/*.md` per task and delegate to the right agent. For coded prototypes, drive the
    `usability-prototype` skill. Three shared building blocks keep the system honest: **`ux-flow-review`**
    (the single heuristic-evaluation canon every review surface loads), **`usability-analytics` /
@@ -41,7 +41,7 @@ skill mirrors here (see *Updating the context*) and the next session builds agai
 ├── CONTEXT.md                       ← shared project facts, skill table + critical rules (read first)
 ├── CLAUDE.md                        ← Claude Code reads this on startup
 ├── README.md                        ← this file
-├── AGENTS-HANDOFF.md                ← screen-role orchestration (ux-designer / ui-designer) + the DS seam
+├── AGENTS-HANDOFF.md                ← screen-role orchestration (product-designer / ui-designer) + the DS seam
 ├── DESIGN.md                        ← design principles + benchmarks (SHARED ground truth, both contexts read)
 ├── skills/
 │   ├── screens.md                   ← consumer screen-building patterns (frame, chrome, scroll, recipes)
@@ -54,8 +54,8 @@ skill mirrors here (see *Updating the context*) and the next session builds agai
 ├── prototypes/
 │   └── {{PROTOTYPE_NAME}}/             ← React/Vite usability prototype (source; node_modules excluded)
 └── .claude/
-    ├── agents/                      ux-designer · ui-designer · flow-reviewer · consumer-migrator · data-analyst
-    ├── commands/                    design-review · consumer-audit · rebind · usability-report
+    ├── agents/                      product-designer · ui-designer · art-director · flow-reviewer · consumer-migrator · data-analyst
+    ├── commands/                    design-review · consumer-audit · rebind · usability-report · art-direction · relayout · checkpoint · changelog
     ├── skills/
     │   ├── ux-flow-review/          ← shared 5-framework heuristic-evaluation canon (invocable)
     │   ├── usability-analytics/     ← analytics + UX-benchmark canon for data validation (invocable)
@@ -67,7 +67,7 @@ skill mirrors here (see *Updating the context*) and the next session builds agai
 
 **Claude Code (primary):** open this repo — `CLAUDE.md` + `CONTEXT.md` load on startup and the
 `.claude/` agents + commands are available. Tell Claude the task; it loads the matching `skills/*.md`
-and delegates to `ux-designer` / `ui-designer`.
+and delegates to `product-designer` / `ui-designer`.
 
 **Claude.ai chat (optional reference):** paste this to load the context as reference (the agents
 don't execute in chat — drive the work manually from the skills):
@@ -90,7 +90,7 @@ handed to the product team + engineers. The Figma gates prove fidelity + system 
 prototype proves it works for users. A failed test routes back to design, not forward.
 
 The **`data-analyst`** (via `/usability-report`) then turns that instrumentation into benchmarked
-evidence — PostHog/Clarity/SEQ vs documented UX norms — so the `ux-designer` validates the screens on
+evidence — PostHog/Clarity/SEQ vs documented UX norms — so the `product-designer` validates the screens on
 data, not opinion. Ready-made queries live in `prototypes/{{PROTOTYPE_NAME}}/analytics-queries.md`.
 
 ```bash
@@ -107,7 +107,7 @@ the on-screen HUD. `.vercel/` links the deploy and is gitignored — never commi
 ## Team setup (onboarding a teammate)
 
 The agents, commands, and skills are **project-scoped** — committed under `.claude/` — so there's
-nothing to install. Anyone who clones the repo and opens Claude Code from inside it gets the 5 agents,
+nothing to install. Anyone who clones the repo and opens Claude Code from inside it gets the 6 agents,
 the 4 slash commands, the 3 invocable skills, `CLAUDE.md`, and the `skills/` docs automatically.
 
 ### Onboarding message (copy-paste to a teammate)
@@ -122,9 +122,10 @@ the 4 slash commands, the 3 invocable skills, `CLAUDE.md`, and the `skills/` doc
 >    git clone https://github.com/{{GITHUB_OWNER}}/{{STUDIO_REPO}}.git
 >    cd {{STUDIO_REPO}} && claude
 >    ```
->    On startup you'll get the agents (`ux-designer`, `ui-designer`, `flow-reviewer`,
->    `consumer-migrator`, `data-analyst`), the commands (`/design-review`, `/consumer-audit`,
->    `/rebind`, `/usability-report`), and the skills — no install step.
+>    On startup you'll get the agents (`product-designer`, `ui-designer`, `art-director`,
+>    `flow-reviewer`, `consumer-migrator`, `data-analyst`), the commands (`/design-review`,
+>    `/consumer-audit`, `/rebind`, `/usability-report`, `/art-direction`, `/relayout`,
+>    `/checkpoint`, `/changelog`), and the skills — no install step.
 > 4. **Connect two MCP servers** (per-person, not in the repo): **Figma** (with the Desktop Bridge
 >    running + edit access to the consumer file `{{CONSUMER_FIGMA_KEY}}`) and **GitHub**. Keep it
 >    minimal — just those two.
@@ -144,7 +145,7 @@ the 4 slash commands, the 3 invocable skills, `CLAUDE.md`, and the `skills/` doc
    claude
    ```
    On startup Claude Code auto-loads `CLAUDE.md` and auto-discovers the `.claude/` agents
-   (`ux-designer`, `ui-designer`, `flow-reviewer`, `consumer-migrator`, `data-analyst`) + commands
+   (`product-designer`, `ui-designer`, `flow-reviewer`, `consumer-migrator`, `data-analyst`) + commands
    (`/design-review`, `/consumer-audit`, `/rebind`, `/usability-report`) + skills (`ux-flow-review`,
    `usability-analytics`, `rebind`).
 3. **Connect the MCP servers** (per-person, per-machine — not stored in the repo):

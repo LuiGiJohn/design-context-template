@@ -1,0 +1,219 @@
+---
+name: flow-layout
+description: >
+  Lay out / RE-LAYOUT consumer screens into correctly-sized, named SECTIONS grouped by flow or
+  use-case — so you never hand-build a section per flow again. Two modes: PLACE NEW (ui-designer just
+  built N frames for a flow → auto-create the sized + named section and drop them in at {{SYSTEM_NAME}} spacing)
+  and RE-FLOW EXISTING (sweep scattered frames already in the file and reorganize them into clean
+  per-flow sections — fix overlaps, spacing, naming). Groups frames by the flow prefix in their name
+  (text before the first " / "), so grouping is deterministic on a shared file. Idempotent — re-running
+  reproduces the same layout. Consumer-file WRITE → Plan Mode first; render-verify after. Trigger on
+  "relayout the screens", "auto-section this flow", "create sections per flow / use-case", "organize
+  the consumer file by flow", "re-flow the frames", "I don't want to manually make sections".
+---
+
+# flow-layout — section + frame layout for consumer flows
+
+Building a flow leaves you with a pile of {{FRAME_W}}×{{FRAME_H}} frames that someone has to hand-place into a
+sized, named SECTION at the right gaps — every build. This skill makes that one operation. It reads the
+flow **grouping from frame names**, creates or reuses one section per flow, packs the frames inside at the
+{{SYSTEM_NAME}} standard spacing, sizes each section to fit, and stacks the sections on the page so they never
+overlap. It runs on the **consumer file `{{CONSUMER_FIGMA_KEY}}`** (or whichever consumer file is in
+scope) via `use_figma`.
+
+It's the automation of **`skills/screens.md` → "Section organization"** — same math, made
+repeatable and idempotent. Load `skills/figma-gotchas.md` first; the steps cite its gotchas.
+
+> Scope: this skill arranges FRAMES and SECTIONS — geometry + grouping only. It does NOT build screen
+> content (that's `ui-designer` composing {{SYSTEM_NAME}}) and it does NOT touch {{SYSTEM_NAME}} component internals (DS
+> context). It will rename a section to match its flow key, but it never renames your frames — naming
+> is the designer's contract (see "Naming convention" below).
+
+---
+
+## The two modes
+
+| Mode | When | What it does |
+|---|---|---|
+| **Place new** | `ui-designer` just built the N frames of a flow and they're loose on the page | Group by name → create one sized + named section per flow → append frames → set section-relative coords → resize section. |
+| **Re-flow existing** | Frames already live in the file, scattered / overlapping / in stale sections | Same, but **reuses** an existing section whose name matches the flow key (moves frames in, re-packs), and re-stacks all touched sections so none overlap. Idempotent. |
+
+Both share one engine — the only difference is "create section" vs "find-or-create section." Default to
+**re-flow** when a section already exists for the flow; it's the safe superset.
+
+---
+
+## Naming convention (the grouping contract)
+
+Grouping is **deterministic from frame names** — no inference, no proximity guessing (chosen so it's
+safe on a shared file). The rule:
+
+- **Section key = the substring before the first ` / `** in the frame name (the *flow*).
+  - `Login / Welcome Back / Default` → flow **`Login`**
+  - `Login / Reset Form / Error` → flow **`Login`**
+  - `Profile / Default` → flow **`Profile`** (a one-screen "flow" = its own section; states sit side by side)
+- **Within-section order = ascending by the remainder** of the name (everything after the first ` / `).
+  - Force an explicit order with a zero-padded step prefix in the remainder:
+    `Login / 01 Welcome Back / Default`, `Login / 02 Reset Form / Default`, … (string sort handles `01 < 02`).
+- **Frames with no ` / `** are **not** grouped — the skill leaves them where they are and reports them.
+  Don't guess a flow for an unnamed frame; ask the designer to name it (ties to the global
+  `figma-screen-naming` skill).
+
+This is the same `<Screen> / <State>` shape already used in `screens.md` (`"Profile / Default"`),
+extended one level to `<Flow> / <Screen> / <State>` for multi-screen flows.
+
+---
+
+## The layout math ({{SYSTEM_NAME}} standard, from screens.md)
+
+Per-frame slot: **{{FRAME_W}}×{{FRAME_H}}**, gap **80**, section padding **80** on all sides. With `maxPerRow`
+columns (default **6** — wrap to a grid past that so a long flow doesn't become one endless strip):
+
+```
+cols      = min(N, maxPerRow)
+rows      = ceil(N / cols)
+colPitch  = {{FRAME_W}} + 80
+rowPitch  = {{FRAME_H}} + 80
+sectionW  = 80 + cols*{{FRAME_W}} + (cols-1)*80 + 80
+sectionH  = 80 + rows*{{FRAME_H}} + (rows-1)*80 + 80      // single row → 80 + {{FRAME_H}} + 80
+frame i   at section-relative (80 + (i % cols)*colPitch, 80 + floor(i / cols)*rowPitch)
+```
+
+Sections are stacked **top-to-bottom** in flow-key order at a fixed page x, with a **160** gap between
+sections, so re-running can't overlap them.
+
+---
+
+## Pre-flight
+
+1. **Confirm the grouping.** Pull the candidate frames (the loose ones for "place new", or the whole
+   page for "re-flow") and print the derived groups: `flow key → [frame names, in placement order]`,
+   plus any **ungrouped** (no ` / `) frames. This is the plan — the designer should recognize their flows.
+2. **Decide reuse vs create per flow.** For each flow key, note whether a SECTION of that name already
+   exists (re-flow into it) or must be created (place new).
+3. **Plan Mode for the write.** Section creation + frame moves mutate the shared consumer file. Plan the
+   per-flow list in `yaml` (flow key · create|reuse · frame count · grid cols×rows · section W×H) and
+   **approve before mutating**. (Plan Mode before any consumer-file write.)
+
+## The procedure
+
+```
+group by name  →  find-or-create section  →  append frames  →  pack + resize  →  re-stack  →  verify
+   (contract)       (reuse if name matches)    section-relative   (the math)       (no overlap)  (screenshot)
+```
+
+1. **Group** frames by flow key; sort each group by the name remainder.
+2. **Find-or-create** the section per flow key:
+   `let s = figma.currentPage.findOne(n => n.type === "SECTION" && n.name === key) || figma.createSection();`
+   then `s.name = key;`
+3. **Append each frame, THEN set section-relative coords.** `SECTION.appendChild` reinterprets the
+   child's x/y as **section-relative** (see the section-append gotcha in `figma-gotchas.md`) — so append
+   first, *then* assign the computed slot. Setting coords before appending puts the frame in the wrong place.
+4. **Pack + resize** with the math above: `section.resizeWithoutConstraints(sectionW, sectionH);`
+5. **Re-stack** all touched sections top-to-bottom at the fixed page x with the 160 gap (prevents the
+   "sections overlap after re-run" failure).
+6. **Render-verify** — `figma_get_component_image` / REST screenshot of the page to confirm sections are
+   sized, named, and non-overlapping with frames at correct gaps. Prefer the REST image:
+   `figma_capture_screenshot` can hang the Desktop Bridge right after writes.
+
+## Reference implementation (run via `use_figma`)
+
+Self-contained — paste, set the inputs, run. Works for both modes (find-or-create handles reuse).
+
+```javascript
+async function layoutFlows({ maxPerRow = 6, pageX = 0, pageY = 0, sectionGap = 160, onlyFrames = null } = {}) {
+  const FRAME_W = {{FRAME_W}}, FRAME_H = {{FRAME_H}}, GAP = 80, PAD = 80;
+  await figma.loadAllPagesAsync();
+  const page = figma.currentPage;
+
+  // 1. collect candidate frames. onlyFrames = explicit node-id list ("place new"); otherwise
+  //    sweep the page: loose top-level FRAMEs AND frames already one level inside SECTIONs, so a
+  //    RE-FLOW (frames already sectioned) and the idempotent re-run both find their frames.
+  //    (One level only — does not recurse nested wrapper sections, e.g. plugin-managed wrappers.)
+  let frames;
+  if (onlyFrames) {
+    frames = onlyFrames.map(id => figma.getNodeById(id)).filter(Boolean);
+  } else {
+    frames = [];
+    for (const child of page.children) {
+      if (child.type === "FRAME") frames.push(child);
+      else if (child.type === "SECTION") {
+        for (const gc of child.children) if (gc.type === "FRAME") frames.push(gc);
+      }
+    }
+  }
+
+  // 2. group by flow key = substring before first " / "
+  const groups = new Map(), ungrouped = [];
+  for (const f of frames) {
+    const i = f.name.indexOf(" / ");
+    if (i === -1) { ungrouped.push(f.name); continue; }
+    const key = f.name.slice(0, i).trim();
+    (groups.get(key) || groups.set(key, []).get(key)).push(f);
+  }
+
+  // 3. lay out each flow into its (reused or created) section
+  let cursorY = pageY;
+  const report = [];
+  for (const key of [...groups.keys()].sort()) {
+    const list = groups.get(key).sort((a, b) =>
+      a.name.slice(a.name.indexOf(" / ")).localeCompare(b.name.slice(b.name.indexOf(" / "))));
+    const N = list.length;
+    const cols = Math.min(N, maxPerRow), rows = Math.ceil(N / cols);
+    const sectionW = PAD + cols * FRAME_W + (cols - 1) * GAP + PAD;
+    const sectionH = PAD + rows * FRAME_H + (rows - 1) * GAP + PAD;
+
+    let section = page.findOne(n => n.type === "SECTION" && n.name === key);
+    const created = !section;
+    if (!section) { section = figma.createSection(); section.name = key; }
+    section.x = pageX; section.y = cursorY;
+
+    list.forEach((f, idx) => {
+      section.appendChild(f);                       // coords become section-relative AFTER this (append gotcha)
+      f.x = PAD + (idx % cols) * (FRAME_W + GAP);
+      f.y = PAD + Math.floor(idx / cols) * (FRAME_H + GAP);
+    });
+    section.resizeWithoutConstraints(sectionW, sectionH);
+
+    cursorY += sectionH + sectionGap;               // re-stack: never overlap
+    report.push({ flow: key, action: created ? "created" : "reused", frames: N, grid: `${cols}×${rows}`, size: `${sectionW}×${sectionH}` });
+  }
+  return { report, ungrouped };
+}
+
+// PLACE NEW (only the frames ui-designer just built):
+//   await layoutFlows({ onlyFrames: ["123:45", "123:46", "123:47"] });
+// RE-FLOW EVERYTHING on the current page:
+//   await layoutFlows();
+```
+
+## Report (what to return)
+
+A per-flow table + the ungrouped list:
+
+| Flow key | Action | Frames | Grid (cols×rows) | Section W×H | Verified |
+|---|---|---|---|---|---|
+| Flow A | reused | 11 | 6×2 | (per math) | ✓ |
+| Flow B | created | 6 | 6×1 | (per math) | ✓ |
+
+- **Ungrouped frames** (no ` / `) — list them; they were left in place, not moved. Recommend a name.
+- **Notes** — any frame that wasn't a standard {{FRAME_W}}×{{FRAME_H}} frame (it's still placed, but flag the
+  size), or a section-name collision you reused.
+
+## Common traps (from the gotchas + this math)
+
+- **Setting coords before `appendChild`** → frame lands wrong. Append FIRST, then assign (section-append
+  gotcha in `figma-gotchas.md`).
+- **Re-running without re-stacking** → sections overlap. Always re-compute `cursorY` from section heights.
+- **Renaming frames to force grouping** → out of scope. Grouping is read from names; fix the *names*
+  (via `figma-screen-naming`), don't have this skill invent them.
+- **Skipping Plan Mode** → it's a consumer-file write. Plan + approve first.
+- **`figma_capture_screenshot` right after the writes** can hang the Bridge — verify with the REST image.
+
+## When to use which surface
+
+- **This skill, interactively** — drive one flow / one page at a time and watch each pack + verify.
+- **`ui-designer`** can call it as the final step of a build (the "place new" mode) so a freshly-built
+  flow lands in its section automatically — no hand-sectioning.
+- A file-wide relayout sweep across many pages is a natural `ui-designer` (or `/consumer-audit`) job;
+  this skill is the engine it runs.

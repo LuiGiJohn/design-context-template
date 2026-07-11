@@ -47,16 +47,17 @@ docs/ARCHITECTURE.md           ← the two-context boundary, the pipeline, the g
 scripts/init-project.mjs       ← optional non-AI renderer (needs js-yaml)
 
 ds-context/      ← design-system authoring skeleton
-  agents:   ds-steward · component-designer · brand-designer
-  commands: /design-system-check · /binding-audit · /drift-check
-  skills:   ds-tokens* · ds-components* · figma-gotchas · component-authoring-standards · spiels
-  tools:    inventory-snippet.js · doc-drift-checker.py
+  agents:   ds-steward · component-designer · brand-designer · publisher (desktop publish executor)
+  commands: /design-system-check · /binding-audit · /drift-check · /publish
+  skills:   ds-tokens* · ds-components* · figma-gotchas · component-authoring-standards · spiels · motion-design (vendored)
+  tools:    inventory-snippet.js · doc-drift-checker.py · skills-lock.json
   manifest: schema + empty baseline
 
 studio-context/  ← screens + prototype skeleton
-  agents:   ux-designer · ui-designer · flow-reviewer · consumer-migrator · data-analyst
-  commands: /design-review · /consumer-audit · /rebind · /usability-report
-  skills:   ux-flow-review · usability-analytics · rebind · screens* + DS mirrors
+  agents:   product-designer · ui-designer · art-director · flow-reviewer · consumer-migrator · data-analyst
+  commands: /design-review · /consumer-audit · /rebind · /usability-report · /art-direction · /relayout · /checkpoint · /changelog
+  skills:   ux-flow-review · usability-analytics · rebind · flow-layout · visual-craft · figma-versioning · screens* + DS mirrors
+  kickoff-prompts/ → new-screen-build recipe
   prototypes/ → pointer to the usability-prototype harness skill
 ```
 `*` = project-data scaffolds you populate per project; everything else is reusable as-is.

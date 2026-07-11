@@ -1,0 +1,17 @@
+---
+description: Auto-lay screens into sized, named sections grouped by flow (place-new + re-flow)
+argument-hint: [flow name / page / "all"]
+---
+Use the **ui-designer** subagent to lay out the consumer file (`{{CONSUMER_FIGMA_KEY}}`), scope
+$ARGUMENTS, by running the **`flow-layout`** skill: group frames by the flow prefix in their name
+(text before the first ` / `) → find-or-create one sized, named SECTION per flow → append frames and
+set section-relative coords (section-append gotcha) → pack at {{SYSTEM_NAME}} spacing ({{FRAME_W}}×{{FRAME_H}} /
+80 gap / 80 pad, wrap past 6/row) → re-stack sections so none overlap. Idempotent.
+
+It's a consumer-file write — Plan Mode first (per-flow plan: create|reuse · frame count · grid · size),
+approve, then render-verify. Return the per-flow table (flow key · created|reused · frames · grid ·
+section W×H · verified) plus any ungrouped frames (no ` / ` — left in place, not moved). Arranges
+geometry only — never builds screen content, never touches {{SYSTEM_NAME}} internals.
+
+For a single flow you want to watch step-by-step, invoke the `flow-layout` skill directly instead.
+Defer to the agent + skill — do not restate the procedure here.

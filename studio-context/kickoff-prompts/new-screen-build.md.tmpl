@@ -1,0 +1,102 @@
+# New screen build kickoff
+
+User wants to build new consumer screen(s) in the `{{CONSUMER_FILE_NAME}}` file using {{SYSTEM_NAME}}
+components and tokens.
+
+## Required skill loads
+
+Load all of these at session start:
+- `skills/ds-tokens.md` — token reference
+- `skills/ds-components.md` — component keys
+- `skills/screens.md` — screen-building patterns and conventions
+- `skills/figma-gotchas.md` — Plugin API traps (MANDATORY before any use_figma call)
+
+## Standard build workflow
+
+1. **Ask user** for:
+   - Reference design (a Figma node ID in the reference file, or a description)
+   - Target placement (which page + section + section-relative position)
+   - Screen name convention (e.g., "Profile / Default")
+
+2. **Inspect reference** via `get_design_context` if a Figma node is provided
+
+3. **Plan in `yaml` block** before building:
+   - Layout structure (content frame, chrome, sub-frames)
+   - Component instances needed (with keys from `ds-components.md`)
+   - Token bindings expected (with keys from `ds-tokens.md`)
+   - Honest scope notes (any gaps in {{SYSTEM_NAME}} that need workarounds)
+
+4. **Build incrementally** with render-verify between phases:
+   - Phase 1: Screen frame + content shell
+   - Phase 2: Main content (cards, forms, etc.)
+   - Phase 3: Chrome (Status Bar, inner-screen top nav if applicable, Home Indicator)
+   - Phase 4: Scroll pattern (numberOfFixedChildren, overflowDirection)
+   - Phase 5: **Binding audit** — walk all NEW frames/text built outside of {{SYSTEM_NAME}} instances,
+     confirm zero unbound elements (see `figma-gotchas.md`, the clone-drops-bindings trap)
+
+5. **After each phase**: `figma_get_component_image` to verify
+
+6. **Final audit**: walk the new screen, count bound fills/strokes/text styles, report
+   - 0 hardcoded fills (excluding white/black for screen-page backgrounds and overlays)
+   - 0 hardcoded strokes
+   - 100% text nodes have textStyleId (or noted exception)
+   - 0 unbound corner radii on cards/buttons/inputs
+   - 0 unbound stroke weights on bordered elements
+
+## Required conventions (per screens.md)
+
+- Mobile frame: {{FRAME_W}}×{{FRAME_H}}
+- Page background: `{{PAGE_BG_TOKEN}}`
+- Prefer the {{SYSTEM_NAME}} component for every standard element — inner-screen headers, list/menu
+  rows, hero amount fields, dialogs — never hand-build an equivalent. When {{SYSTEM_NAME}} is missing a
+  variant, use the closest substitute and file a gap to the DS context.
+- Chrome at END of children, `numberOfFixedChildren` counts from end
+- `overflowDirection = "VERTICAL"` if scrollable, `"NONE"` otherwise
+
+## Component decision matrix
+
+Map each recurring need to the {{SYSTEM_NAME}} component that owns it — never hand-build the "Don't use"
+column. Fill these rows in per project from `ds-components.md`:
+
+| Need | Use | Don't use |
+|---|---|---|
+| Inner screen header | _{{SYSTEM_NAME}} nav / app-bar component_ | custom controls bar |
+| Menu / settings row | _{{SYSTEM_NAME}} list-item component_ | custom fixed-size row frame |
+| _…add rows per project…_ | _{{SYSTEM_NAME}} component + key_ | custom equivalent |
+
+## Critical gotchas to remember
+
+(All numbered in `figma-gotchas.md` — load it first.)
+
+- **Font loading mandatory** — load every {{FONTS}} weight before any text op
+- **`swapComponent` resets vector fill bindings** — always re-bind after swap
+- **`SECTION.appendChild` reinterprets coords as section-relative** — append first, then set x/y
+- **`layoutSizingHorizontal` requires parent IS auto-layout + node already appended**
+- **Anchor frame pattern** — when wrapping toggleable side slots around centered content, use fixed
+  anchor frames so center stays centered regardless of toggle state
+- **URL node-IDs may resolve to pages, not components** — when `figma_get_component` returns
+  `type: "CANVAS"`, scan children for the real COMPONENT_SET
+- **Variants outside component_set bounds break the variant picker** — if you clone a variant to extend
+  a set, restack inside the parent bounds
+- **Binding completeness must be audited, not assumed** — `clone()` does NOT preserve setBoundVariable
+  references. Run the audit script from `figma-gotchas.md` on any new component or sub-frame before final
+  delivery. Target zero unbound elements.
+
+## Honest scope reminders
+
+- Always offer to update the consumer file audit after building
+- If a {{SYSTEM_NAME}} gap is hit (missing token, missing style, missing icon), flag honestly:
+  - Use the closest substitute
+  - Document the gap in scope notes
+  - Suggest a {{SYSTEM_NAME}} update for the next publish cycle
+- Track known unresolved gaps (missing text styles, missing tokens, no dedicated component for a need)
+  and their agreed workarounds, so each build inherits the current list instead of rediscovering them.
+
+## Communication style
+
+- Skip apologies. Direct.
+- `yaml` planning blocks before each phase.
+- Render-verify visually after every phase — no "looks fine" without screenshot.
+- Always include the binding audit as the final phase before delivery.
+- End with a structured delivery summary listing what's done + scope notes + audit results (must show
+  zero unbound elements).

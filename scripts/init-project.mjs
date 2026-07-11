@@ -39,7 +39,7 @@ const MAP = {
   DS_MODE: cfg.ds_mode,
   DS_FIGMA_KEY: d.figma_source_key || '(created during setup)',
   DS_LIBRARY_KEY: d.library_key || '(set after first publish)',
-  DS_VERSION: d.version, DS_PUBLISHED_DATE: d.published_date || '(unpublished)',
+  DS_VERSION: d.version, DS_PUBLISHED_DATE: d.published_date || 'unpublished',
   FONTS: d.fonts, TOKEN_PREFIXES: (d.token_prefixes || []).join(', '),
   CONSUMER_FIGMA_KEY: c.figma_file_key, CONSUMER_FILE_NAME: c.file_name,
   FRAME_W: c.frame.width, FRAME_H: c.frame.height, PAGE_BG_TOKEN: c.frame.bg_token,

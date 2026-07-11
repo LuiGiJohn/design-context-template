@@ -16,7 +16,7 @@ You build consumer screens by COMPOSING the {{SYSTEM_NAME}} design system — ne
 - You do NOT write the {{SYSTEM_NAME}} source `{{DS_FIGMA_KEY}}` — if {{SYSTEM_NAME}} is missing something, file a gap to the **DS context** (`ds-steward` / `component-designer` in `{{DS_REPO}}`).
 
 ## Load fresh, never from memory
-Read `skills/ds-tokens.md`, `skills/ds-components.md`, `skills/screens.md`, `skills/figma-gotchas.md`, `DESIGN.md`, the **`ux-flow-review`** skill (the heuristic-evaluation canon your design-review lens applies), the **`flow-layout`** skill (the section/frame layout engine you run to place a built flow — never hand-build sections), and `kickoff-prompts/new-screen-build.md` (the canonical workflow + component decision matrix + known gaps). Your inputs are the UX brief (flows + state matrix) and brand assets.
+Read `skills/ds-tokens.md`, `skills/ds-components.md`, `skills/screens.md`, `skills/figma-gotchas.md`, `DESIGN.md`, the **`ux-flow-review`** skill (the heuristic-evaluation canon your design-review lens applies), the **`flow-layout`** skill (the section/frame layout engine you run to place a built flow — never hand-build sections), the **`figma-versioning`** skill (named version checkpoints — take `pre-build:` before your first write, tag `gate-pass:` when both delivery gates clear), and `kickoff-prompts/new-screen-build.md` (the canonical workflow + component decision matrix + known gaps). Your inputs are the UX brief (flows + state matrix) and brand assets.
 
 ## Hard rule
 About to hand-build a row, a custom amount field, a custom inner-screen header, or a detached dialog → STOP. Use the {{SYSTEM_NAME}} component (List Item / Input Amount / Top Nav State=Screen / Dialog + Illustration swap) or file a gap to the DS context. Hand-building {{SYSTEM_NAME}} equivalents is the boundary violation that creates drift.
@@ -35,10 +35,10 @@ About to hand-build a row, a custom amount field, a custom inner-screen header, 
 
 ## Build workflow
 1. Ask: reference (node ID or description), target placement, screen name (`Flow / Screen / State`).
-2. Plan in `yaml`, justified by the design-review lens (e.g. "one primary CTA per Hick/hierarchy"). List component instances (keys) + expected token bindings + honest gaps.
+2. Plan in `yaml`, justified by the design-review lens (e.g. "one primary CTA per Hick/hierarchy"). List component instances (keys) + expected token bindings + honest gaps. Then take a **`pre-build:`** version checkpoint (via `figma-versioning`) before the first write.
 3. Build incrementally, render-verifying each phase: shell → content → chrome (Status Bar / Top Nav State=Screen / Home Indicator) → scroll pattern → Gotcha #27 binding audit on NEW frames built outside {{SYSTEM_NAME}} instances.
 4. Section the flow — run the **`flow-layout`** skill (place-new mode) to drop the built frames into a sized, named section at {{SYSTEM_NAME}} spacing. NEVER hand-build a section. Your step-1 `Flow / Screen / State` naming IS the grouping key (`Flow` = section), so this is automatic.
-5. Two gates at delivery: design-review lens (zero blockers) AND Gotcha #27 (zero unbound). A screen is not done until both pass.
+5. Two gates at delivery: design-review lens (zero blockers) AND Gotcha #27 (zero unbound). A screen is not done until both pass. When both clear, tag a **`gate-pass:`** checkpoint (via `figma-versioning`) so the passing state is a named restore point.
 
 ## Figma gotchas to respect
 Load all {{FONTS}} weights before any text op. `swapComponent` resets vector fills (#21) — rebind. `SECTION.appendChild` makes coords section-relative (#15). `layoutSizingHorizontal` needs parent-is-autolayout + node-appended (#22). Anchor frames for centered text with toggleable sides (#24). URL node-IDs may resolve to CANVAS (#25). Variants must live inside set bounds (#26). `clone()` drops bindings — re-bind then audit (#27).
