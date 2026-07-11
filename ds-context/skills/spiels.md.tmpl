@@ -12,7 +12,7 @@ This is the i18n companion to `ds-tokens.md`. Where `ds-tokens` covers colors / 
 ## Architectural principles
 
 1. **Strings live in their own collection** — never mix into Semantic, Tokens, or Primitives. Language modes are orthogonal to design tokens; polluting the color collection with language modes forces every consumer to choose a language even if they don't need localization.
-2. **Modes = languages, not regions** — `EN` / `TL` / `CB`, not `en-PH` / `tl-PH`. APS spiels are language-keyed; regional formatting (dates, currency) is a code-side concern.
+2. **Modes = languages, not regions** — `EN` / `TL` / `CB`, not `en-PH` / `tl-PH`. {{SYSTEM_NAME}} spiels are language-keyed; regional formatting (dates, currency) is a code-side concern.
 3. **One scope only: `TEXT_CONTENT`** — prevents the string from appearing in fill / stroke / radius pickers. Hard rule.
 4. **Screen-scoped naming by default** — `login/title`, `cards/empty-state-cta`. Maps cleanly to `useTranslations('login')` namespaces in `next-intl` / `i18next`.
 5. **Cross-screen strings get promoted to `shared/`** — once a string appears on 2+ screens, move it to `shared/<context>/<key>` so engineering doesn't ship duplicates.
@@ -117,7 +117,7 @@ When localizing a screen that uses these components:
 4. Helper text in error states often follows a pattern (`<screen>/amount/helper-error` per screen) — keep screen-scoped unless the exact wording is identical across screens
 5. List Item row labels in settings menus often repeat across screens — watch for opportunities to promote to `shared/menu/<key>-label`
 
-**Critical**: Per Gotcha #2 below, TEXT properties on component instances are bound via the component's source — you can't bind directly on the instance. For these v0.8/v0.9 components, the binding lives on the source component's inner text node, and the component property surfaces it as an instance-level override. To localize a property like Input Amount's Label Text, modify the source component in APS, not the instance.
+**Critical**: Per Gotcha #2 below, TEXT properties on component instances are bound via the component's source — you can't bind directly on the instance. For these v0.8/v0.9 components, the binding lives on the source component's inner text node, and the component property surfaces it as an instance-level override. To localize a property like Input Amount's Label Text, modify the source component in {{SYSTEM_NAME}}, not the instance.
 
 ## Initial spiels (login screen — reference set)
 
@@ -133,7 +133,7 @@ These are the v0.1 baseline. Extend per screen as new flows are localized.
 | `login/mobile-label` | Mobile Number | Mobile Number | Numero sa Mobile |
 | `login/passcode-label` | Passcode | Passcode | Passcode |
 
-Note: TL is intentionally Taglish (English + Tagalog code-switching), matching Aster Pay's brand voice. Pure Tagalog reads stiff to the target user.
+Note: a language mode can intentionally be a code-switched blend (here the `TL` column is Taglish — English + Tagalog — not pure Tagalog) when that matches the product's brand voice; a stiff formal register often reads wrong to the target user.
 
 ## The full binding recipe
 
@@ -319,7 +319,7 @@ Set the mode at the **page level** for canonical multilingual previews (one page
 
 ## Engineering handoff — i18n integration
 
-APS spiels map 1:1 to a flat JSON structure for `next-intl` or `i18next`:
+{{SYSTEM_NAME}} spiels map 1:1 to a flat JSON structure for `next-intl` or `i18next`:
 
 ```typescript
 // messages/en.json
@@ -364,7 +364,7 @@ export default function LoginPage() {
 
 ### Export script (proposed for future automation)
 
-A `tools/aps-spiels-export.js` snippet can dump the collection to per-language JSON files matching the structure above. Run after every spiels update to keep `messages/*.json` in sync with Figma.
+A `tools/spiels-export.js` snippet can dump the collection to per-language JSON files matching the structure above. Run after every spiels update to keep `messages/*.json` in sync with Figma.
 
 ## Known gaps (no support in Figma variables)
 
@@ -376,7 +376,7 @@ A `tools/aps-spiels-export.js` snippet can dump the collection to per-language J
 | Right-to-left languages | None yet — flag as future-work if/when Arabic / Hebrew are added | Mirroring is a layout problem, not a string problem |
 | Locale-specific dates / currency | Use `Intl.DateTimeFormat` / `Intl.NumberFormat` in code | Out of scope for string variables |
 
-Mark code-only strings (interpolated, pluralized, formatted) with a `code-only/` prefix in APS so designers know not to expect a Figma preview:
+Mark code-only strings (interpolated, pluralized, formatted) with a `code-only/` prefix in {{SYSTEM_NAME}} so designers know not to expect a Figma preview:
 
 ```
 code-only/cart/items-count        // "{count} items in cart"
@@ -400,7 +400,7 @@ When deciding how to localize a piece of copy:
 4. Currency labels ("PHP", "USD") → almost always shared from day one
 5. Run Step 2 (batch-create) with all strings + EN/TL/CB values
 6. Run Step 3 (bindings) with `{ nodeId, varId }` pairs
-7. For instance-bound properties (Input Amount Label Text, etc.), bind on the APS source component instead
+7. For instance-bound properties (Input Amount Label Text, etc.), bind on the {{SYSTEM_NAME}} source component instead
 8. Verify with a screenshot at each mode
 9. Remind the user to **Publish Library**
 10. If new shared strings were added, prompt: "Want me to refactor existing screens to use the shared variants?"

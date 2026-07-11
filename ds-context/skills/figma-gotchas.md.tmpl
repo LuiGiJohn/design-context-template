@@ -111,8 +111,8 @@ const allShapes = node.findAll(n =>
 ```
 
 ### Gotcha #20 — Instance layout caches until republish
-When APS spec changes (e.g., Size=Large slot 28→32 in v0.7), consumer file instances still show OLD dimensions. To force refresh:
-1. APS designer publishes (UI action)
+When {{SYSTEM_NAME}} spec changes (e.g., Size=Large slot 28→32 in v0.7), consumer file instances still show OLD dimensions. To force refresh:
+1. {{SYSTEM_NAME}} designer publishes (UI action)
 2. Consumer file: `instance.swapComponent(sameComponent)` to re-sync layout
 3. Re-apply any property overrides that may have reset
 
@@ -218,7 +218,7 @@ for (const v of set.children) {
 
 After repositioning, the set's bounds auto-recalculate to contain all variants. **Republish required** for consumer files (Gotcha #4 + #20).
 
-**Real-world example**: APS v0.8 List Item — `Type=Rich` variant (1406:20) was created at canvas position (2990, 15), well outside the component_set (1406:25) bounds at (1482, -237). REST API confirmed the variant existed; Type axis included "Rich"; `figma_get_component_image` rendered it correctly. But the variant picker in instance properties either hid it or refused to switch to it. Fix: moved Rich to (1482, -156), inside the set bounds, then republished. Variant became selectable.
+**Real-world example**: {{SYSTEM_NAME}} v0.8 List Item — `Type=Rich` variant (1406:20) was created at canvas position (2990, 15), well outside the component_set (1406:25) bounds at (1482, -237). REST API confirmed the variant existed; Type axis included "Rich"; `figma_get_component_image` rendered it correctly. But the variant picker in instance properties either hid it or refused to switch to it. Fix: moved Rich to (1482, -156), inside the set bounds, then republished. Variant became selectable.
 
 ## Gotcha #27 — Binding completeness must be audited, not assumed ⭐ NEW v2.2
 
@@ -235,7 +235,7 @@ When building a component programmatically, every visual property silently falls
 - **Auto-layout spacing**: `paddingTop/Right/Bottom/Left`, `itemSpacing`, `counterAxisSpacing`
 - **Text styles**: `await textNode.setTextStyleIdAsync(style.id)` — without this, the text node has `fontName`, `fontSize`, `lineHeight`, `letterSpacing` as raw literals even though visually it matches a known style
 
-**`clone()` does NOT carry forward `setBoundVariable` calls reliably.** When cloning a component to create variants, the cloned node may have the literal *value* but lose the variable *binding*. After every clone, re-bind anything the variant uses. Verified during APS Input Amount build — Default variant had `topLeftRadius` bound to `Border-Radius/xlg`; after `clone()`, the cloned Focused/Error/Disabled variants had `topLeftRadius = 16` as a literal, not bound. Required explicit re-binding.
+**`clone()` does NOT carry forward `setBoundVariable` calls reliably.** When cloning a component to create variants, the cloned node may have the literal *value* but lose the variable *binding*. After every clone, re-bind anything the variant uses. Verified during {{SYSTEM_NAME}} Input Amount build — Default variant had `topLeftRadius` bound to `Border-Radius/xlg`; after `clone()`, the cloned Focused/Error/Disabled variants had `topLeftRadius = 16` as a literal, not bound. Required explicit re-binding.
 
 **Mandatory: run an audit script after build, before publish.** Walk every node, check `node.boundVariables[prop]` exists for every visible property. The audit catches what the eye can't see:
 
@@ -305,7 +305,7 @@ if (findings.length > 0) throw new Error(`${findings.length} unbound elements �
 
 **False positives to filter**: nodes that *have* the property API but no visible rendering of it. A frame with no strokes still has `strokeTopWeight: 1` as a default — don't flag it. Only flag stroke weights on nodes where `(node.strokes || []).some(s => s.visible !== false)`.
 
-**Real-world example**: APS v0.9 Input Amount build. After completing all 4 variants and assuming bindings were applied correctly, an audit pass revealed 20 unbound elements: text styles missing on 16 text nodes (Label, Currency, Value across all variants — initial build set raw `fontName/fontSize` instead of `setTextStyleIdAsync`), and 12 corner-radius literals on 3 cloned variants (Default had bound radii; Focused/Error/Disabled clones lost the bindings through `clone()`). All caught by the audit, all fixable in one batched execute call. Without the audit they would have shipped as silent drift.
+**Real-world example**: {{SYSTEM_NAME}} v0.9 Input Amount build. After completing all 4 variants and assuming bindings were applied correctly, an audit pass revealed 20 unbound elements: text styles missing on 16 text nodes (Label, Currency, Value across all variants — initial build set raw `fontName/fontSize` instead of `setTextStyleIdAsync`), and 12 corner-radius literals on 3 cloned variants (Default had bound radii; Focused/Error/Disabled clones lost the bindings through `clone()`). All caught by the audit, all fixable in one batched execute call. Without the audit they would have shipped as silent drift.
 
 **Classify findings — don't collapse to one number (v2.4, 2026-06-23 re-audit).** A whole-system re-audit showed a flat `findings.length` over-reports: a COMPONENT_SET's *root + wrapper-chrome* (set-level `cornerRadius`, the 40px set padding, the set's selection border) never ships, and numeric literals are a different severity than unbound colors. Split into three buckets and gate on the first:
 1. **Unbound COLOR paints** — visible SOLID fills/strokes with no `boundVariables`. The real gate; **target zero** before publish.
@@ -328,7 +328,7 @@ Building or extending a variant SET via the Plugin API has three traps that bite
 ## Honest scope reminders
 
 - **Always render-verify after any visual change** via `figma_get_component_image` or `figma_capture_screenshot`
-- **Audit instances skip their internals** — bindings inside a APS instance are the APS component's responsibility. Only audit OVERRIDES at the instance level.
+- **Audit instances skip their internals** — bindings inside a {{SYSTEM_NAME}} instance are the {{SYSTEM_NAME}} component's responsibility. Only audit OVERRIDES at the instance level.
 - **Hardcoded #FFFFFF and #000000 are usually acceptable** (no semantic token for "pure white screen" or "pure black overlay" — these are intentional)
 - **Cloned dashboards in Tips screens go stale** when the source dashboard changes. Refresh by re-cloning if you've made downstream changes.
 - **REST API bounds can lag plugin-side moves** — after repositioning a variant inside a set, the parent set's `bounds` field from `figma_get_component` may still report the pre-move dimensions until the file fully refreshes server-side. Confirm via the variant's own `absoluteBoundingBox` from `figma_get_component_for_development`.
@@ -427,6 +427,6 @@ node.setBoundVariable('paddingTop', v);
 
 - **v2.4 (2026-06-23)**: Added Gotcha #29 (`getVariableByIdAsync` needs the `VariableID:` prefix — a bare id returns `null`, and `setBoundVariable(prop, null)` then silently no-ops → false success). Hardened Gotcha #27 with the three-bucket (color / numeric / stroke-weight) classification + COMPONENT_SET-root exclusion. Both surfaced in the 2026-06-23 whole-system re-audit + spacing-tokenization pass.
 - **v2.3 (2026-05-26)**: Added Gotcha #28 (component-property references detach on clone/swap; property defaults are SHARED across variants — no per-variant defaults) after the List Item v0.9 work (Three Line variant + icon/image swap + editable text). Codifies the re-bind-after-clone/swap rule and the shared-default design constraint for all future component-set builds.
-- **v2.2 (2026-05-21)**: Added Gotcha #27 (binding completeness must be audited, not assumed) after APS v0.9 Input Amount build surfaced 20 silent drift findings. Added cross-reference from Gotcha #8 to #27. Added `figma_capture_screenshot` post-write hang to honest scope reminders.
+- **v2.2 (2026-05-21)**: Added Gotcha #27 (binding completeness must be audited, not assumed) after {{SYSTEM_NAME}} v0.9 Input Amount build surfaced 20 silent drift findings. Added cross-reference from Gotcha #8 to #27. Added `figma_capture_screenshot` post-write hang to honest scope reminders.
 - **v2.1 (2026-05-21)**: Added Gotcha #25 (node-ID from URL ≠ component node) and #26 (variants outside component_set bounds break the variant picker). Both surfaced while diagnosing the List Item Rich variant visibility issue post-v0.8 publish.
 - **v2.0 (2026-05-14)**: Added Gotcha #24 (centered text needs anchor frames) for Top Nav State=Screen.
