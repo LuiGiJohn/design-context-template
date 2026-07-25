@@ -1,0 +1,62 @@
+# release-runbook
+
+**Version**: v0.1 (scaffold)
+
+> ⛔ **TODO — SCAFFOLD, RECORD YOUR REAL COMMANDS.** This is `build-uploader`'s runbook for {{PROJECT_NAME}}
+> (EAS project `{{EAS_PROJECT}}`, package `{{APP_PACKAGE_ID}}`). The **verification discipline + gate**
+> below are ready to use; the **exact commands + store setup** are what you record per project — store
+> APIs and account walls are unforgiving, so build the command from HERE, not from memory.
+>
+> On any release: record the version + commit + track below, then commit + push (never secrets).
+
+## The release gate (system-agnostic — keep)
+
+Nothing ships until all clear: **provenance** (real non-zero artifact from the intended commit) ·
+**signing** (correct upload/signing cert; store re-signing accounted for) · **version** (monotonic +
+authoritative) · **declarations honest** (data-safety/privacy match the built binary + the live listing) ·
+**upload confirmed** (re-read the store TRACK, not the submit response).
+
+## Verification discipline (system-agnostic — keep — earned the hard way)
+
+- 🔴 **Verify by artifact, never by a piped `| tail`** — the exit code is tail's; a failed build reports
+  success. Redirect full output, grep it, confirm a real non-zero artifact + the signing cert.
+- 🔴 **Prove a check can find what you KNOW is there before trusting an all-clear** — a green check on the
+  wrong signal is worse than none. Use binary-safe grep flags; bundled strings may be UTF-16 (a UTF-8-only
+  grep gives false negatives).
+- **Declarations are the fact in the binary, not the intention in config** — read the merged
+  manifest/entitlements, not the source flag.
+- **Promotion in ONE invocation** — create-edit → set-track → commit together, then confirm by RE-READING
+  the track (a split invocation can lose the edit).
+
+## Secrets (system-agnostic — keep)
+
+Store credentials + signing keys are gitignored + `chmod 600`. Operated, never committed. The signing key
+can publish releases — treat it as the one real secret.
+
+---
+
+## Commands — record yours
+
+> `TODO:` the exact, working commands for THIS project.
+
+- **Build (signed release):** `TODO:` (e.g. `eas build --local ...`) + how you verify the artifact (size,
+  signing cert one-glance check, commit provenance).
+- **Upload:** `TODO:` (e.g. `eas submit --platform android --profile production --path <artifact>`).
+- **Promote a track:** `TODO:` (the store's edits/tracks API call) + the re-read that confirms it.
+- **Store assets / data-safety:** `TODO:` how assets are generated + where the data-safety source lives.
+- **Version of record:** `TODO:` where the authoritative build number comes from.
+
+## Store setup gotchas — record yours
+
+> `TODO:` the account/permission walls you hit once so the next release doesn't (API enablement, service-
+> account permissions on the store console vs cloud IAM, track names, review timing).
+
+## Release log — append per release
+
+| Version | Commit | Track | Date | Notes |
+|---|---|---|---|---|
+| `TODO` | | | | |
+
+## Changelog
+- **v0.1**: scaffold — release gate, verification discipline, secrets rule, empty command + gotcha +
+  release-log slots. Record real commands on first release.

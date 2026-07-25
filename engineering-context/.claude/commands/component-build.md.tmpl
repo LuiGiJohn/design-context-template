@@ -1,0 +1,17 @@
+---
+description: Build/extend a coded component (+ story), or re-sync tokens from the Figma DS
+argument-hint: [component / "sync"]
+---
+Use the **component-engineer** subagent on $ARGUMENTS. If the argument is `sync`, regenerate the coded
+tokens from the currently published Figma DS (`{{DS_REPO}}`) and diff against the last sync. Otherwise
+build or extend the named component in `{{COMPONENT_LIB}}` + its Storybook story.
+
+Run the `parity_lens`: fidelity to the Figma source (verified by a Storybook screenshot, not by eye),
+every value bound to a synced token (no literals), complete accessible states (default/focus/pressed/
+disabled/error, 44×44, roles/labels, reduced-motion), and cross-platform honesty (native + web export;
+every export exists in both). A missing Figma DS token/component is a gap → request to `{{DS_REPO}}`,
+never a code-only invention.
+
+Deliver: the parity_lens result + the token-sync diff, zero unbound + zero drift before handoff, and the
+published `{{COMPONENT_LIB}}` version so the prototype + app consume the same one. Defer to the agent — do
+not restate the token catalog here.

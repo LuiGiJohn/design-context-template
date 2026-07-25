@@ -33,6 +33,7 @@ const cfg = yaml.load(readFileSync(CFG, 'utf8'));
 
 // ── placeholder map ──────────────────────────────────────────────────────────
 const p = cfg.project, d = cfg.design_system, c = cfg.consumer, pr = cfg.prototype, r = cfg.repos, u = cfg.user_preferences;
+const e = cfg.engineering || {};
 const MAP = {
   PROJECT_NAME: p.name, SYSTEM_NAME: p.system_name, SYSTEM_FULL_NAME: p.system_full_name,
   BRAND_SHORT: p.brand_shorthand, PARENT_ORG: p.parent_org || '', DOMAIN: p.domain, GITHUB_OWNER: p.github_owner,
@@ -44,7 +45,9 @@ const MAP = {
   CONSUMER_FIGMA_KEY: c.figma_file_key, CONSUMER_FILE_NAME: c.file_name,
   FRAME_W: c.frame.width, FRAME_H: c.frame.height, PAGE_BG_TOKEN: c.frame.bg_token,
   PROTOTYPE_NAME: pr.name, PROTOTYPE_DESC: pr.description,
-  DS_REPO: r.ds_context, STUDIO_REPO: r.studio_context,
+  DS_REPO: r.ds_context, STUDIO_REPO: r.studio_context, ENGINEERING_REPO: r.engineering_context || '',
+  COMPONENT_LIB: e.component_lib || 'ui', NATIVE_STACK: e.native_stack || 'Expo / React Native',
+  APP_PACKAGE_ID: e.app_package_id || '(set during setup)', EAS_PROJECT: e.eas_project || '(set after first EAS build)',
   USER_METHODOLOGY: u.methodology, USER_COMMUNICATION: u.communication, USER_CODE_STYLE: u.code_style,
   USER_MENTORSHIP: u.mentorship, USER_HONESTY: u.honesty, USER_FORMAT: u.format,
 };
@@ -85,4 +88,7 @@ function renderTree(srcDir, dstDir) {
 console.log(`init-project · mode=${cfg.ds_mode} · out=${OUT}${DRY ? ' (dry run)' : ''}`);
 console.log(`→ ${r.ds_context}`);     renderTree(join(ROOT, 'ds-context'), join(OUT, r.ds_context));
 console.log(`→ ${r.studio_context}`); renderTree(join(ROOT, 'studio-context'), join(OUT, r.studio_context));
+// The engineering context (coded component library + native app + release) is OPTIONAL — rendered only
+// when repos.engineering_context is set. Design-only projects omit it and get the two Figma contexts.
+if (r.engineering_context) { console.log(`→ ${r.engineering_context}`); renderTree(join(ROOT, 'engineering-context'), join(OUT, r.engineering_context)); }
 console.log('Done. Next: git init each repo; populate DS skill mirrors; open in Claude Code.');

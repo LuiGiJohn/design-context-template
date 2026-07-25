@@ -1,0 +1,146 @@
+# {{SYSTEM_NAME}} Engineering Agents — Claude Code Handoff
+
+Orchestration layer for the **code** arm of {{PROJECT_NAME}}. This context turns the Figma design system
+and the validated screens into **shipping software**: the one coded component library ({{COMPONENT_LIB}})
++ Storybook, the native app ({{NATIVE_STACK}}), and the store release. It is the third context alongside
+`{{DS_REPO}}` (Figma DS) and `{{STUDIO_REPO}}` (Figma screens + prototype).
+
+---
+
+## The organizing principle — one coded library, three consumers
+
+The Figma DS is authored in `{{DS_REPO}}`. **This** context builds its ONE code implementation and ships
+it. `{{COMPONENT_LIB}}` is consumed by (1) Storybook, (2) the usability prototype (Expo web export on
+Vercel), and (3) the native app — so the thing you usability-test is the thing you ship. That shared
+library is what makes prototype→app rework near-zero.
+
+| Role | Write surface | Owns (object type) |
+|---|---|---|
+| `component-engineer` | `{{ENGINEERING_REPO}}` — `{{COMPONENT_LIB}}` (RN components + coded tokens) + Storybook | the CODE mirror of {{SYSTEM_NAME}} — token sync from the Figma DS, components, stories, code↔Figma parity |
+| `app-engineer` | `{{ENGINEERING_REPO}}` — the native app ({{NATIVE_STACK}}, `{{APP_PACKAGE_ID}}`) | screens composed from the shared library · navigation · storage/state · native modules · device verification |
+| `build-uploader` | `{{ENGINEERING_REPO}}` — build/release config, store metadata, submission | the signed artifact · versioning · data-safety/privacy declarations · `eas submit` + track promotion |
+
+**Mental model:** `component-engineer` codes the DS as `{{COMPONENT_LIB}}` (token-synced, Storybook-
+verified) → the studio's prototype and `app-engineer`'s app both consume it → `app-engineer` wires native
+concerns onto the validated screens → `build-uploader` builds, uploads, and CONFIRMS the release. A Figma
+DS gap routes to `{{DS_REPO}}`; a design/flow change routes to `{{STUDIO_REPO}}`.
+
+---
+
+## Cross-context seams (where this context connects)
+
+```
+{{DS_REPO}} (Figma DS) ──published tokens + component keys──▶ component-engineer (token sync + {{COMPONENT_LIB}})
+                                                                        │  publishes {{COMPONENT_LIB}}
+                        ┌───────────────────────────────────────────────┼───────────────────────────────┐
+                        ▼                                                                                 ▼
+{{STUDIO_REPO}}: validated screens ──▶ prototype (Expo web export → Vercel, consumes {{COMPONENT_LIB}})     app-engineer (native app)
+                        │                          usability gate (product-designer + data-analyst)         │
+                        └──────────────── validated flow is the app's spec ─────────────────────────────────┘
+                                                                                                            ▼
+                                                                                                 build-uploader (EAS + store)
+```
+
+- **From `{{DS_REPO}}`:** published tokens + component keys → `component-engineer` regenerates coded
+  tokens + builds/updates components. A missing token/component is a DS gap, filed there.
+- **From `{{STUDIO_REPO}}`:** the validated screen specs + acceptance criteria are `app-engineer`'s build
+  input; the prototype (which the studio owns as the usability gate) consumes `{{COMPONENT_LIB}}` so it is
+  faithful to the app.
+- **Back to the design contexts:** a component can't do what a screen needs → `component-engineer` builds
+  it (code) or files a Figma DS gap (design); a flow doesn't work in code → back to `{{STUDIO_REPO}}`.
+
+---
+
+## The pipeline (this context's slice)
+
+```yaml
+engineering_pipeline:
+  0_sync:      component-engineer regenerates coded tokens from the published Figma DS; diff
+  1_components: build/extend {{COMPONENT_LIB}} components + Storybook stories; token-bound (component-engineer)
+  1b_parity:   PARITY GATE — Storybook screenshot vs the Figma source; zero unbound, zero drift
+  2_publish:   version + publish {{COMPONENT_LIB}} so prototype AND app consume the same version
+  3_app:       compose the shared library into the validated screens; wire nav/storage/native (app-engineer)
+  4_device:    DEVICE GATE — verify on real hardware what emulators can't prove (auth, push, rollover, signed builds)
+  5_build:     build the signed release; verify by artifact (build-uploader)
+  6_upload:    eas submit → intended track; CONFIRM by re-reading the track (build-uploader)
+  7_record:    record version + commit + track + what shipped
+  feedback:
+    ds_gap:      "{{COMPONENT_LIB}} needs a token/component the Figma DS lacks" → {{DS_REPO}}, before coding
+    lib_gap:     "a screen needs a component the library lacks" → component-engineer, before app build
+    flow_back:   "the flow doesn't work once coded" → {{STUDIO_REPO}} (product-designer/ui-designer)
+    ds_republish: "Figma DS republished" → component-engineer re-syncs tokens + re-checks parity
+    build_fail:  build/upload fails or a device check fails → back to app-engineer, never forward
+```
+
+---
+
+## The gates this context adds (beyond the design + usability gates)
+
+1. **Parity gate** (`component-engineer`) — the coded component matches its Figma source and is fully
+   token-bound (zero drift, zero literals), verified by a Storybook screenshot, not by eye.
+2. **Device gate** (`app-engineer`) — the things only real hardware proves (auth on a store-signed
+   build, push, background/time behavior) are verified on a device, not inferred from an emulator.
+3. **Release gate** (`build-uploader`) — verify-by-artifact + honest declarations + upload confirmed by
+   re-reading the store track. A green command is not a shipped release.
+
+These compose with the studio's design-review + usability gates — the same "prove it, don't assume it"
+discipline, carried into code and release.
+
+---
+
+## Boundary calls
+
+```yaml
+compose_vs_build:  app-engineer COMPOSES {{COMPONENT_LIB}} · never re-implements a component in the app.
+                   component-engineer builds the component ONCE · never forks it per consumer.
+code_vs_figma:     component-engineer codes the DS · never re-designs it (a Figma DS gap → {{DS_REPO}}).
+                   {{COMPONENT_LIB}} tokens are GENERATED from the Figma DS · never hand-typed.
+app_vs_release:    app-engineer writes app code + device-verifies · build-uploader builds/signs/uploads ·
+                   neither edits the other's surface.
+secrets:           store credentials + signing keys are gitignored + chmod 600 · operated, never committed.
+gaps:              any "the Figma DS is missing X" → {{DS_REPO}}; any "the flow is wrong" → {{STUDIO_REPO}}.
+```
+
+---
+
+## Operating rules for the desktop session
+
+**1. Plan Mode before any library or app write.** Both mutate shipping code. Plan in `yaml` (components +
+tokens + native concerns + honest gaps), approve, then build incrementally with render-verification.
+
+**2. Verify by artifact, never by a piped `| tail`.** The exit code you read is tail's — a failed build
+can report success. Redirect full output, grep it, confirm a real non-zero artifact.
+
+**3. Prove a check can find what you know is there before trusting an all-clear.** A green check on the
+wrong signal is worse than no check (binary-safe grep flags; bundled strings may be UTF-16).
+
+**4. One coded library, three consumers.** Storybook, prototype, and app render the same components.
+Never fork per consumer; a gap is a library build (here) or a Figma DS request (`{{DS_REPO}}`).
+
+**5. Secrets stay out of git.** Store keys + signing material gitignored, `chmod 600`.
+
+**6. Re-sync on a DS republish.** A Figma DS publish is not consumed until `component-engineer` regenerates
+the coded tokens and re-checks parity.
+
+---
+
+## Slash commands (thin wrappers — they delegate, they don't duplicate)
+
+| Command | Delegates to | Does |
+|---|---|---|
+| `/component-build [component / "sync"]` | `component-engineer` | build/extend a coded component + story, or re-sync tokens from the Figma DS |
+| `/app-build [screen / flow]` | `app-engineer` | compose the shared library into a validated screen + wire native concerns |
+| `/release ["build" / "upload" / "promote" / track]` | `build-uploader` | build the signed artifact, submit, and confirm the track |
+
+Each command body only *invokes the agent* — the workflow lives in one place. Add new commands the same
+way: thin, delegating — never duplicate.
+
+---
+
+## Separate contexts — design + screens
+
+By design, this context is **code only**. The Figma design system (tokens, components, publish, drift)
+lives in `{{DS_REPO}}`; the Figma screens + the usability prototype + the validation gate live in
+`{{STUDIO_REPO}}`. `DESIGN.md` is shared ground truth all three read. This context consumes the published
+Figma DS (as coded tokens/components) and the validated screens (as the app's spec), and produces the
+shipping app.

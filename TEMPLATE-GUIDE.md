@@ -42,7 +42,16 @@ without breaking projects already stamped from it.
 | `{{PROTOTYPE_NAME}}` | `prototype.name` | kebab-case |
 | `{{PROTOTYPE_DESC}}` | `prototype.description` | |
 | `{{DS_REPO}}` / `{{STUDIO_REPO}}` | `repos.*` | rendered repo names |
+| `{{ENGINEERING_REPO}}` | `repos.engineering_context` | code repo; **omit the field → no engineering context rendered** |
+| `{{COMPONENT_LIB}}` | `engineering.component_lib` | shared RN component package (default `ui`) |
+| `{{NATIVE_STACK}}` | `engineering.native_stack` | e.g. "Expo SDK 57 / React Native 0.86" |
+| `{{APP_PACKAGE_ID}}` | `engineering.app_package_id` | native app id |
+| `{{EAS_PROJECT}}` | `engineering.eas_project` | EAS project slug |
 | `{{USER_METHODOLOGY}}` … `{{USER_FORMAT}}` | `user_preferences.*` | personal defaults |
+
+The `engineering` block + `repos.engineering_context` are **optional** — set them to render the third
+(code) context; omit `repos.engineering_context` for a design-only project (init renders just the two
+Figma contexts). The engineering placeholders fall back to sensible defaults if the block is absent.
 
 ## What's generic vs. project-data
 
@@ -74,8 +83,19 @@ the first real entry is copy-paste.
 - **Keep the example honest**: `project.config.example.yaml` must always render cleanly. After any
   schema change, dry-run it: `node scripts/init-project.mjs --dry --out /tmp/render-check`.
 
-## The two contexts at a glance
+## The contexts at a glance
 
-See `docs/ARCHITECTURE.md` for the boundary diagram + the define→build→validate→handoff pipeline,
-and each context's own `CONTEXT.md` / `CLAUDE.md` / `AGENTS-HANDOFF.md` (rendered from `.tmpl`) for
-the full operating manual.
+- **`ds-context`** (Figma) — authors + publishes the design system.
+- **`studio-context`** (Figma) — builds the consumer screens + the usability prototype.
+- **`engineering-context`** (code, OPTIONAL) — the coded component library + Storybook, the native app
+  (Expo/RN), and the release. Rendered only when `repos.engineering_context` is set.
+
+See `docs/ARCHITECTURE.md` for the boundary diagram + the intake→build→validate→ship pipeline, and each
+context's own `CONTEXT.md` / `CLAUDE.md` / `AGENTS-HANDOFF.md` (rendered from `.tmpl`) for the full
+operating manual.
+
+**Prototype↔app alignment (the reason the engineering context pays off):** the studio's usability
+prototype is an **Expo web export of the same `{{COMPONENT_LIB}}` components the native app ships** —
+`component-engineer` builds the library once, and both the prototype and the app consume it. What you
+usability-test is what you ship, so prototype→app rework is near-zero. Design-only projects skip this
+and keep the standalone web prototype.

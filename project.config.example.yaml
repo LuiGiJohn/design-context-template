@@ -36,9 +36,18 @@ prototype:
     posthog_host_env: "VITE_POSTHOG_HOST"
     clarity_env:      "VITE_CLARITY_ID"
 
+# OPTIONAL — the code arm. Set repos.engineering_context to render the 3rd context
+# (coded component library + Storybook + native app + release). Omit for design-only.
+engineering:
+  component_lib:  "ui"                                # shared RN component package name  → {{COMPONENT_LIB}}
+  native_stack:   "Expo / React Native"              #                                   → {{NATIVE_STACK}}
+  app_package_id: "com.example.asterpay"           # native app id                     → {{APP_PACKAGE_ID}}
+  eas_project:    "@example/aster-pay"              # EAS project slug                  → {{EAS_PROJECT}}
+
 repos:
-  ds_context:     "aps-claude-context"
-  studio_context: "aps-studio-context"
+  ds_context:          "aps-design-system-context"
+  studio_context:      "aps-studio-context"
+  engineering_context: "aps-app"                     # omit this line for a design-only project
 
 user_preferences:
   methodology:   "Atomic Design, WCAG 2.2 AA, semantic HTML + ARIA by default"

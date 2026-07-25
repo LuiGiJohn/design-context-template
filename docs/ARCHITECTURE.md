@@ -77,3 +77,33 @@ feedback:    any "DS is missing X" → DS context builds + publishes → studio 
   still rendered (for authoring deltas), but the action starts in the studio.
 - **build** — the DS context bootstraps a new system, publishes v0.1, and the studio consumes it as it
   grows. Early screens may stub not-yet-published components; `/rebind` reconciles after each publish.
+
+## The engineering context (OPTIONAL third arm — code)
+
+The two contexts above are Figma-centric: they design. A third context, **`engineering-context`**, turns
+the design into **shipping software** — rendered only when `repos.engineering_context` is set (design-only
+projects omit it). It owns three roles:
+
+- **`component-engineer`** — the ONE coded implementation of the DS: a React Native component library
+  (`{{COMPONENT_LIB}}`) + Storybook, with tokens GENERATED from the Figma DS (never hand-typed).
+- **`app-engineer`** — the native app (Expo / React Native), composing the shared library into the
+  validated screens; owns storage, navigation, native modules, and device verification.
+- **`build-uploader`** — the signed build, versioning, data-safety declarations, and store upload +
+  track promotion, under a verify-by-artifact discipline.
+
+```
+DS CONTEXT (Figma) ──published DS──▶ component-engineer ──▶ {{COMPONENT_LIB}} + Storybook
+                                                                    │  (one coded library)
+                    ┌────────────────────────────────────────────────┼──────────────────────────────┐
+                    ▼                                                                                  ▼
+STUDIO CONTEXT: screens ──▶ prototype (Expo web export → Vercel, consumes {{COMPONENT_LIB}})            app-engineer ──▶ build-uploader
+                    │                    usability gate (product-designer + data-analyst)              (native app)      (EAS + store)
+                    └───────────── the validated flow is the app's spec ────────────────────────────────┘
+```
+
+**The one idea that makes this pay off: one coded library, three consumers** (Storybook, the prototype,
+the app). The prototype is an Expo web export of the *same* components the app ships, so what you
+usability-test is what you ship — prototype→app rework drops from "re-implement" to "wire native
+concerns." It adds three gates to the pipeline: **parity** (code matches Figma, verified in Storybook),
+**device** (real-hardware checks emulators can't prove), and **release** (verify-by-artifact + honest
+declarations + upload confirmed by re-reading the store). Full manual: `engineering-context/AGENTS-HANDOFF.md`.

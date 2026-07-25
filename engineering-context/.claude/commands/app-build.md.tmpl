@@ -1,0 +1,17 @@
+---
+description: Compose the shared component library into a validated screen + wire native concerns
+argument-hint: [screen / flow]
+---
+Use the **app-engineer** subagent to build $ARGUMENTS in the native app ({{NATIVE_STACK}},
+`{{APP_PACKAGE_ID}}`). Consume the VALIDATED screen spec + acceptance criteria from `{{STUDIO_REPO}}` and
+COMPOSE `{{COMPONENT_LIB}}` — do not re-implement a component (a gap → `component-engineer`) or re-draw a
+validated layout (the prototype is the spec; port native concerns, not pixels).
+
+Run the `engineering_lens`: parity to the validated flow, state + data correctness (loading/empty/error/
+success wired, async failures surface to the UI — never a silent dead tap), platform correctness (iOS +
+Android build + behave, permissions honest, a11y carried from the components), performance (no needless
+re-renders on the core loop, fonts preloaded), and device-verification of what only hardware proves.
+
+Deliver: the engineering_lens result + the device-check status, and hand a verified build target to
+`build-uploader` with the commit + what changed + what device checks remain. Defer to the agent — do not
+restate the component API here.

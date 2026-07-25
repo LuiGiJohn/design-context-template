@@ -1,0 +1,28 @@
+# {{ENGINEERING_REPO}} — {{PROJECT_NAME}} engineering (code)
+
+The **code** arm of {{PROJECT_NAME}} — the third context alongside `{{DS_REPO}}` (Figma design system) and
+`{{STUDIO_REPO}}` (Figma screens + prototype). It turns the design system + validated screens into
+shipping software.
+
+## What lives here
+- **`{{COMPONENT_LIB}}` + Storybook** — the ONE coded implementation of {{SYSTEM_NAME}}, token-synced from
+  the Figma DS, consumed by the prototype (Expo web export → Vercel) AND the native app. *(component-engineer)*
+- **The native app** — {{NATIVE_STACK}}, package `{{APP_PACKAGE_ID}}`, composed from the shared library +
+  the validated screens. *(app-engineer)*
+- **The release** — signed builds, versioning, data-safety declarations, `eas submit` + track promotion,
+  EAS project `{{EAS_PROJECT}}`. *(build-uploader)*
+
+## The one idea
+**One coded library, three consumers** (Storybook · prototype · app). The thing you usability-test is the
+thing you ship, so prototype→app rework is near-zero.
+
+## Boot
+Read `AGENTS-HANDOFF.md` for the roster, pipeline, cross-context seams, and the three gates this context
+adds (parity · device · release). `CLAUDE.md` has the working notes. `DESIGN.md` is shared with the other
+two contexts. Agents: `component-engineer`, `app-engineer`, `build-uploader`. Commands: `/component-build`,
+`/app-build`, `/release`.
+
+## Boundaries
+Consumes the published Figma DS (`{{DS_REPO}}`) as coded tokens/components and the validated screens
+(`{{STUDIO_REPO}}`) as the app's spec. A Figma DS gap routes to `{{DS_REPO}}`; a flow change to
+`{{STUDIO_REPO}}`. Secrets (store keys, signing material) stay gitignored.

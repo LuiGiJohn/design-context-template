@@ -1,0 +1,19 @@
+---
+description: Build the signed artifact, submit, and confirm the store track
+argument-hint: ["build" / "upload" / "promote" / track]
+---
+Use the **build-uploader** subagent to run the release for $ARGUMENTS (EAS project `{{EAS_PROJECT}}`,
+package `{{APP_PACKAGE_ID}}`). Follow `skills/release-runbook.md` — build the exact command from the
+runbook, not from memory.
+
+Clear the `release_gate`: provenance (a real non-zero artifact from the intended commit — verify by
+artifact, never by a piped `| tail`), signing (correct upload/signing cert, store re-signing accounted
+for), version (monotonic + authoritative), declarations honest (data-safety/privacy match the built
+binary + the live listing), and upload confirmed (re-read the store TRACK, not the submit response).
+
+Verification discipline: prove a check can find what you KNOW is there before trusting an all-clear;
+binary-safe grep flags; bundled strings may be UTF-16; do the create-edit → set-track → commit in ONE
+invocation, then confirm by re-reading the track. Never commit secrets.
+
+Deliver: the release_gate result + the artifact/track verification, and report the release only after
+re-reading the store confirms it. Defer to the agent + runbook — do not restate the store API here.

@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+.expo/
+.expo-shared/
+
+# builds / artifacts
+dist/
+dist-ssr/
+web-build/
+*.aab
+*.apk
+*.ipa
+*.app/
+ios/build/
+android/app/build/
+android/build/
+storybook-static/
+
+# secrets — NEVER commit (store keys can publish releases)
+*.keystore
+*.jks
+credentials/
+!credentials/README.md
+*service-account*.json
+GoogleService-Info.plist
+google-services.json
+.env
+.env.*
+!.env.example
+
+# vercel / hosting
+.vercel
+
+# os / editor
+.DS_Store
+*.log

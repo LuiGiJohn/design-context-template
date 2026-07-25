@@ -1,0 +1,64 @@
+# shared-component-library
+
+**Version**: v0.1 (scaffold)
+
+> ⛔ **TODO — SCAFFOLD, POPULATE AS YOU BUILD.** This is the map of `{{COMPONENT_LIB}}` — the ONE coded
+> implementation of {{SYSTEM_NAME}}, consumed by Storybook, the usability prototype (Expo web export →
+> Vercel), and the native app. `component-engineer` owns it. The **rules + token-sync discipline** below
+> are ready to use; the **Component catalog** + **token map** are what you fill in per project.
+>
+> On any component change: update this file + the Storybook story, then commit + push.
+
+## The rule (system-agnostic — keep)
+
+One library, three consumers. Never fork a component per consumer, never re-implement it in the
+prototype or the app, never hand-type a token. A screen needs something the library can't do → build the
+component here (code) or file a Figma DS gap to `{{DS_REPO}}` (design). Both prototype and app consume the
+SAME published version of `{{COMPONENT_LIB}}`.
+
+## Token sync (system-agnostic — keep)
+
+Coded tokens are GENERATED from the published Figma DS (`{{DS_REPO}}`), not hand-typed:
+1. Export the Figma variables/styles (the DS context's manifest is the key list).
+2. Transform to the RN token module (names/keys mirror the manifest so a Figma change is a mechanical regen).
+3. Commit; diff against the last sync. Re-run on every {{SYSTEM_NAME}} republish.
+
+`TODO:` record this project's exact export → transform command + where the token module lives.
+
+## Cross-platform rule (system-agnostic — keep)
+
+Every export must exist for BOTH native and the web export. A `.native.tsx` without a matching `.web.tsx`
+(or vice-versa) dies on an undefined import — and only when the component is used, not at build. When a
+component must fork per platform, note it here.
+
+## Parity gate (system-agnostic — keep)
+
+A component is done when: it matches its Figma source (verified by a Storybook screenshot vs the Figma
+render), every value is token-bound (no literals), states are complete + accessible (44×44, focus,
+roles/labels, reduced-motion), and it renders on native AND the web export.
+
+---
+
+## Component catalog — add yours
+
+> One block per component. Document: the props/variants, the synced tokens it binds, the Figma source it
+> mirrors, and any platform fork.
+
+### <Component name> (example slot — replace)
+
+**Mirrors (Figma):** `<{{SYSTEM_NAME}} component + key from {{DS_REPO}}>`
+**Props / variants:** `<...>`
+**Binds tokens:** `<synced token names>`
+**Platform:** `<shared | .native/.web fork + why>`
+**Story:** `<Storybook path>`
+
+---
+
+## Token map — add yours
+
+> `TODO:` the synced token groups (color/space/radius/type…) + where the generated module lives, mirroring
+> the `{{DS_REPO}}` manifest.
+
+## Changelog
+- **v0.1**: scaffold — one-library rule, token-sync + cross-platform + parity discipline, empty catalog
+  + token-map slots. Populate as components get built.
