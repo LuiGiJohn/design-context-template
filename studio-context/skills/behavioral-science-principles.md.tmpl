@@ -1,0 +1,103 @@
+# {{PROJECT_NAME}} — Behavioral-Science Design Principles
+
+**Version**: v0.1 (scaffold)
+
+> ⛔ **TODO — SCAFFOLD, ADD YOUR MECHANISMS.** This is the evidence base for *why* {{PROJECT_NAME}}'s
+> screens, cues, defaults, and copy are patterned the way they are — the single source the
+> `behavioral-scientist` agent owns and gates against, and the doc the `ux-flow-review` {{DOMAIN}}
+> overlay cites (evidence lives HERE, never restated in the skill). The **stance, calibration tiers,
+> anti-pattern discipline, and per-mechanism format** below are ready to use; the **Mechanisms** and
+> **cheat-sheet** are the parts you populate for THIS project's domain ({{DOMAIN}}). Add one mechanism
+> per well-replicated finding you actually design around; delete the illustrative example once you have
+> real ones.
+>
+> A mature, worked reference implementation lives in the Anya Ngay studio context
+> (`behavioral-science-principles.md` — 11 affective-neuroscience mechanisms). Use it as a model for
+> depth and honesty, not as content to copy: your domain's mechanisms and redlines differ.
+>
+> On any change: update this file, then commit + push. Run `/behavioral-review` to gate a screen against it.
+
+## Stance (read first — the guardrails are the point)
+
+1. **Evidence-based, not evidence-theatre.** Use mechanisms that are well-replicated in the relevant
+   science. Where the science is only *suggestive*, say so (see the calibration section). Never dress a
+   preference up as "science."
+2. **Respect the project's ethical redlines.** State them explicitly for {{DOMAIN}} and never walk them
+   in through copy or framing. `TODO:` name this project's redlines (e.g. a wellness product's
+   "awareness, not treatment / no diagnostic language"; a fintech product's "no debt-trap nudging"; a
+   commerce product's "no fabricated scarcity or drip-priced fees").
+3. **Autonomy-supportive, never manipulative.** Every mechanism below has a manipulative twin; we
+   refuse them (§ Anti-patterns). For most audiences manipulation is not just unethical but
+   *counterproductive* — it erodes the autonomy that drives durable behavior.
+4. **The core-loop effort budget wins ties.** If a "scientific" enhancement adds friction to the core
+   task, it loses. Low effort on the primary task is itself part of the intervention.
+
+---
+
+## Mechanisms → patterns
+
+> **Per-mechanism format** (one block each). Keep the calibration tier honest — it is what separates
+> this from evidence-theatre.
+>
+> ```
+> ### N. <Mechanism name>  · evidence: <strong | moderate | weak>
+> **Science.** <the finding, at framework/researcher level — no naked stats>
+> **Design implication.** <what it means for how we build>
+> **In {{PROJECT_NAME}}.** <the concrete screen/flow/copy that IS this mechanism>
+> **Guardrail.** <the specific line this mechanism must not cross — its dark-pattern twin>
+> ```
+
+### 1. <Example — replace with your first real mechanism>  · evidence: **moderate**
+**Science.** `TODO:` the well-replicated finding you design around, cited at researcher/framework
+level (e.g. "social proof", "implementation intentions", "peak–end", "choice overload / Hick's Law").
+**Design implication.** `TODO:` what the finding means for a concrete design decision.
+**In {{PROJECT_NAME}}.** `TODO:` the exact screen / cue / default / copy that embodies it.
+**Guardrail.** `TODO:` the specific line it must not cross (the anti-pattern twin, refused below).
+
+---
+
+## Anti-patterns we deliberately refuse (the ethics)
+
+Every mechanism above has a manipulative twin. For most audiences these aren't just unethical — they're
+*counterproductive* (they erode autonomy). `TODO:` keep this list specific to {{DOMAIN}}; the generic
+starters below apply to nearly every product:
+
+- **Guilt / loss-aversion pressure** — "you'll lose your…" framing that punishes rather than invites.
+- **Fabricated scarcity / false urgency** — countdowns and "only N left" that aren't real.
+- **Forced continuity / roach-motel** — easy to enter, hard to cancel/leave.
+- **Confirmshaming** — decline options worded to shame the user ("No, I don't want to save money").
+- **Variable-reward / slot-machine loops** — engineered compulsion dressed as delight.
+- **Notification spam / manufactured urgency** — more prompts than the value justifies.
+- **Forced signup / data hostage** — withholding core value to extract data.
+- **`TODO:` <this project's domain-specific redline>** — the one your {{DOMAIN}} audience is most at risk from.
+
+If a proposed pattern only "works" by making the user feel bad or trapped, it's out — no matter how much
+it might move a metric.
+
+---
+
+## Screen-patterning cheat-sheet
+
+> `TODO:` one row per recurring screen, naming its lead mechanism(s) + the pattern rule. Example shape:
+
+| Screen | Lead mechanism(s) | Pattern rule |
+|---|---|---|
+| `<screen>` | `<mechanism>` | `<the rule this screen follows>` |
+
+---
+
+## Calibration & honesty
+
+- **Strong / well-replicated:** `TODO:` list the mechanisms you'd stake a design on.
+- **Moderate / directional (real but context-dependent or correlational):** `TODO:`.
+- **Weak / we don't lean on it:** `TODO:` (e.g. literal "color psychology" claims).
+- Effect sizes are modest and vary by person/context. **Do not publish specific stats or outcome
+  claims** externally without verifying the primary source — internally, use these as *design
+  rationale*, not marketing.
+
+## References (framework / researcher level)
+`TODO:` list the researchers/frameworks behind the mechanisms above (name-level, not stat-level).
+
+## Changelog
+- **v0.1**: scaffold — stance, per-mechanism format, anti-pattern starters, calibration + cheat-sheet
+  shells, one example mechanism slot. Populate the Mechanisms + cheat-sheet as you design.

@@ -11,8 +11,9 @@ principles + benchmarks, shared with the DS context).
 ## Install
 
 `.claude/` (the `product-designer` + `art-director` + `ui-designer` + `flow-reviewer` +
-`consumer-migrator` + `data-analyst` agents and the `/design-review`, `/consumer-audit`,
-`/art-direction`, `/rebind`, `/usability-report`, `/relayout`, `/checkpoint`, `/changelog` commands)
+`behavioral-scientist` + `consumer-migrator` + `data-analyst` agents and the `/design-review`,
+`/behavioral-review`, `/consumer-audit`, `/art-direction`, `/rebind`, `/usability-report`, `/relayout`,
+`/checkpoint`, `/changelog` commands)
 and `DESIGN.md` are **committed to this repo** — a fresh clone already has the roster, no copy step.
 (`/agents` opens an interactive panel inside a terminal Claude Code session to verify.)
 
@@ -23,10 +24,10 @@ The design-system roster (`ds-steward`, `component-designer`, `brand-designer`, 
 
 ## The organizing principle — define before you build, compose don't reinvent
 
-Two **core** roles drive the pipeline (`product-designer`, `ui-designer`), plus three **supporting**
-roles — `art-director` (creative direction), `flow-reviewer` (independent review), `consumer-migrator`
-(migration) — with `data-analyst` running the empirical loop. Each owns a distinct **write-surface** and
-**moment in the pipeline**, so they never collide.
+Two **core** roles drive the pipeline (`product-designer`, `ui-designer`), plus **supporting** roles —
+`art-director` (creative direction), `flow-reviewer` (independent usability review), `behavioral-scientist`
+(independent evidence + ethics review), `consumer-migrator` (migration) — with `data-analyst` running
+the empirical loop. Each owns a distinct **write-surface** and **moment in the pipeline**, so they never collide.
 
 | Role | Write surface | Owns (object type) |
 |---|---|---|
@@ -34,6 +35,7 @@ roles — `art-director` (creative direction), `flow-reviewer` (independent revi
 | `art-director` *(optional)* | `Explorations / <flow>` low-fi frames in the consumer file (quarantined from delivery) | CREATIVE DIRECTION — deconstruct a reference/trend → filter through the token/brand fence → adapt-not-copy → 2–3 named directions → build spec for `ui-designer` (runs the `visual-craft` canon) |
 | `ui-designer` | CONSUMER Figma file `{{CONSUMER_FIGMA_KEY}}` (screen frames, layout, composition, states) | pixel-perfect, system-compliant screens composed from {{SYSTEM_NAME}} · build-time design-review self-check · consumer drift sweeps |
 | `flow-reviewer` | read-only (review output) | INDEPENDENT heuristic evaluation of screens + flows — runs the `ux-flow-review` canon; the expert-review gate |
+| `behavioral-scientist` | `skills/behavioral-science-principles.md` (owns it); read-only on screens/copy | INDEPENDENT mechanism + anti-manipulation evaluation — runs the `evidence_lens`; the evidence + ethics gate |
 | `data-analyst` | read-only (analysis output) | EMPIRICAL validation — turns prototype analytics into benchmarked evidence (the `usability-analytics` canon); feeds `product-designer` |
 | `consumer-migrator` | CONSUMER file(s) (instance swaps + override re-application) | propagating a {{SYSTEM_NAME}} publish across consumers — runs the `rebind` procedure; confirms changes are consumed |
 
@@ -55,12 +57,18 @@ consumes the published result.
 | `art-director` *(optional)* | creative direction from a reference/trend — deconstruct → filter through the token/brand fence → adapt-not-copy → 2–3 named directions → low-fi `Explorations` → build spec (the `visual-craft` canon) | "recreate this screen with a fresh take", "make it look like [app] but on-brand", "give me creative directions / layout options", "what trend fits this screen", "explore visual options", "clean it up / make it more aesthetic" |
 | `ui-designer` | composing {{SYSTEM_NAME}} into pixel-perfect consumer screens, build-time design-review self-check, consumer-file drift sweep | "build/recreate the X screen", "compose this flow in Figma", "sweep the consumer file for drift" |
 | `flow-reviewer` | INDEPENDENT heuristic evaluation of screens + flows (the `ux-flow-review` canon) | "review this screen/flow", "heuristic evaluation", "is this usable / AA-compliant", "evaluate this journey" |
+| `behavioral-scientist` | INDEPENDENT mechanism + anti-manipulation evaluation + the `behavioral-science-principles.md` evidence base | "is this actually evidence-based", "does this manipulate", "what's the mechanism behind this screen/copy", "check the [nudge/reminder/upsell/default] for dark patterns", "add a mechanism to the evidence base" |
 | `data-analyst` | turning prototype analytics into screen-validation evidence (the `usability-analytics` canon) | "analyze the usability data", "what does the data say", "benchmark SEQ / task success / time-on-task", "where are users dropping off" |
 | `consumer-migrator` | propagating a {{SYSTEM_NAME}} publish across consumer files (the `rebind` procedure) | "migrate the consumer onto the new X", "the {{SYSTEM_NAME}} update shipped — sweep the consumer", "confirm the publish is consumed" |
 
 **Shared building blocks** — reusable pieces every relevant role loads, so behavior never drifts:
 - **`ux-flow-review` skill** = the single heuristic-evaluation canon (5 frameworks + {{DOMAIN}} + WCAG
   2.2 AA). `ui-designer` (self-check), `flow-reviewer` (gate), `/design-review` all load it.
+- **`behavioral-science-principles.md`** = the single evidence + ethics canon (this project's
+  behavioral mechanisms → screen patterns, strong-vs-suggestive calibration, anti-pattern refusal list).
+  `behavioral-scientist` owns + gates against it; the `ux-flow-review` {{DOMAIN}} overlay and
+  `/behavioral-review` cite it — evidence changes there, never restated. Complementary to the usability
+  canon: it asks *why does this work and is it honest*, `ux-flow-review` asks *can they use it*.
 - **`visual-craft` skill** = the creative-direction canon (deconstruct → filter through the token/brand
   fence → adapt-not-copy → 2–3 named directions → low-fi Explorations). `art-director` runs it;
   `/art-direction` delegates to it. Aesthetics never overrides usability/a11y; a new-component need is a DS gap.
@@ -102,6 +110,7 @@ gate, not an optional extra — designs do not go live or reach engineers unvali
 | "Recreate this screen with a fresh take" · "make it look like [app] but on-brand" · "give me creative directions / layout options" · "explore visual options" · "clean it up / make it more aesthetic" | `art-director` (`/art-direction`, runs `visual-craft`) |
 | "Build / recreate the X screen" · "compose this flow in Figma" | `ui-designer` (runs its design-review self-check at plan + delivery) |
 | "Review this screen/flow" · "heuristic evaluation" · "is this AA / usable?" | `flow-reviewer` (`/design-review`) |
+| "Is this evidence-based / manipulative?" · "what's the mechanism behind this" · "check the [nudge/reminder/upsell/default] for dark patterns" · "add a mechanism" | `behavioral-scientist` (`/behavioral-review`) |
 | "Sweep the consumer file for drift / migration opportunities" | `ui-designer` (`/consumer-audit`) |
 | "Relayout / auto-section the screens" · "create sections per flow" · "organize the file by flow" | `ui-designer` (`/relayout`, runs `flow-layout`) |
 | "Migrate the consumer onto the new X" · "the {{SYSTEM_NAME}} update shipped — propagate it" · "confirm it's consumed" | `consumer-migrator` (`/rebind`) |
@@ -120,10 +129,12 @@ screen_creation_pipeline:
   0_intake:  deconstruct the ask → business goal · metric · segment · JTBD · constraints · scope · CX criteria (product-designer)
   1_define:  flows + state matrix + acceptance criteria + functional copy, tied to the goal + CX (product-designer)
   1b_direct: OPTIONAL — reference/trend → on-brand direction → 2–3 options → low-fi Explorations (art-director, visual-craft)
+  1c_evidence: behavioral-scientist advises the mechanism + guardrail behind the pattern/copy (evidence_lens, as a lens)
   2_gap?:    new pattern/component needed? → file a request to the DS context; wait or stub
   3_build:   compose {{SYSTEM_NAME}} into the screen; build incrementally, render-verify each phase (ui-designer)
   4_gates:   Figma gates — design-review self-check (zero blockers, ux-flow-review canon) + Gotcha #27 (zero unbound)
   4b_review: INDEPENDENT heuristic evaluation — flow-reviewer runs the ux-flow-review canon as the gate
+  4c_evidence: INDEPENDENT evidence + ethics gate — behavioral-scientist runs the evidence_lens (mechanism/calibration/guardrail/anti-pattern)
   5_proto:   build + instrument the coded prototype; run the usability test (usability-prototype)
   6_analyze: data-analyst benchmarks the behavior (usability-analytics) → validation evidence
   6b_validate: usability GATE — product-designer validates screens vs the evidence (success/time/SEQ/drop-off), against the business goal AND CX; pass → handoff
@@ -133,6 +144,7 @@ screen_creation_pipeline:
     direct_to_ds: "a creative direction needs a new/changed component or brand token" → DS gap, before ui-designer builds
     pd_to_ds:   "new interaction pattern needs a component" → DS context, before ui-designer builds
     review_back: flow-reviewer finds a blocker → back to product-designer/ui-designer, never forward
+    evidence_back: behavioral-scientist finds a dark pattern / ethical-redline / overclaim → back to product-designer, never forward
     data_back:  data-analyst invalidates a screen → back to product-designer/ui-designer; inconclusive → re-test
     proto_to_pd: usability test surfaces a problem → back to product-designer/ui-designer before handoff
     ds_to_here: "{{SYSTEM_NAME}} republished" → refresh the read-only skill mirrors, THEN run consumer-migrator
@@ -162,6 +174,24 @@ screen- and flow-level slices that the DS context explicitly defers:
 | **6 · analyze + validate** (`data-analyst` → `product-designer`) | Gerhardt-Powals (reduce uncertainty · fuse data) · Tognazzini (efficiency) · Weinschenk (User Feedback) | Benchmark behavior vs UX norms (success ≈78%+, SEQ ≥5.5, time vs target, drop-off); triangulate quant + Clarity; validate / invalidate / re-test with stated confidence, against the business goal AND CX. Failure routes back, not forward. |
 | **7 · handoff** | Weinschenk (System Capabilities · User Feedback) | Only *data-validated* screens reach product + engineering / go live. |
 | _DS context — NOT applied here_ | Rams · Shneiderman (consistency/memory) · Gerhardt-Powals (data-fusion) at the **token/component** layer | Token + component construction — applied where {{SYSTEM_NAME}} is authored, not where screens are built. |
+
+### The behavioral-science canon — a parallel overlay, not a §6 slice
+
+The §6 frameworks above judge *how a screen is composed and sequenced*. The
+`behavioral-science-principles.md` canon (owned by `behavioral-scientist`) is a **separate,
+complementary lens** that judges *why a pattern should work and whether it is honest* — this project's
+behavioral mechanisms, their strong-vs-suggestive calibration, and the anti-pattern refusal list. It
+overlays two pipeline steps:
+
+- **Step 1 · define UX + copy** — as a *lens*: which mechanism does the pattern/copy rest on (name it
+  or admit none), does it honor that mechanism's guardrail?
+- **Step 4c · evidence gate** — as an *independent gate*: an anti-pattern (guilt/loss-aversion ·
+  fabricated scarcity · forced continuity · confirmshaming · variable-reward · notification spam · the
+  project's **ethical redline**) is a **blocker** that routes back to `product-designer`; an overclaimed
+  or mechanism-less pattern is a major finding.
+
+`flow-reviewer` (can they use it) + `behavioral-scientist` (why does it work + is it honest) +
+`data-analyst` (does it test well) are three complementary gates, not redundant ones.
 
 ## Boundary calls
 
@@ -218,6 +248,7 @@ Explorations, `gate-pass:` when the two Figma gates clear, `milestone:` when the
 | Command | Delegates to | Does |
 |---|---|---|
 | `/design-review [screen / flow / node-id]` | `flow-reviewer` | independent heuristic evaluation (the `ux-flow-review` canon) |
+| `/behavioral-review [screen / flow / copy line / node-id]` | `behavioral-scientist` | independent evidence + ethics gate (the `evidence_lens` — mechanism/calibration/guardrail/anti-pattern) |
 | `/consumer-audit [page / "all"]` | `ui-designer` | sweep the consumer file for drift + migration opportunities |
 | `/art-direction [screen / flow / reference / trend]` | `art-director` (runs `visual-craft`) | creative visual directions from a reference/trend — on-brand, inside {{SYSTEM_NAME}} |
 | `/rebind [component / file / "all"]` | `consumer-migrator` | migrate consumer instances onto a freshly published {{SYSTEM_NAME}} main |
@@ -250,8 +281,8 @@ waits or stubs. `DESIGN.md` is shared ground truth both read.
 
 `CLAUDE.md` / `CONTEXT.md` boot the session with project facts, file keys, version, and preferences.
 `DESIGN.md` is the design-principles source the agents read. The two core agents (`product-designer`,
-`ui-designer`) — plus the supporting `art-director`, `flow-reviewer`, `consumer-migrator`, and
-`data-analyst` — are the execution specialists this context delegates to after boot. The canonical
+`ui-designer`) — plus the supporting `art-director`, `flow-reviewer`, `behavioral-scientist`,
+`consumer-migrator`, and `data-analyst` — are the execution specialists this context delegates to after boot. The canonical
 workflows live **inside the agents** (Claude Code); `kickoff-prompts/*.md` are reference recipes the
 agents and you can pull from.
 

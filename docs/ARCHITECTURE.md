@@ -39,6 +39,7 @@ system can't silently drift.
 3_ui:        compose the DS into the screen; render-verify each phase             (ui-designer)
 4_gates:     design-review self-check (zero blockers) + binding audit (zero unbound)
 4b_review:   INDEPENDENT heuristic evaluation                                     (flow-reviewer)
+4c_evidence: INDEPENDENT evidence + ethics gate (mechanism/calibration/anti-pattern) (behavioral-scientist)
 5_proto:     build + instrument the coded prototype; run the usability test       (usability-prototype)
 6_analyze:   benchmark behavior vs UX norms → evidence                            (data-analyst)
 6b_validate: usability GATE — validate screens vs the evidence; pass → handoff    (ux-designer)
@@ -64,6 +65,11 @@ feedback:    any "DS is missing X" → DS context builds + publishes → studio 
   `data-analyst` runs it; `ux-designer` validates against its verdicts. Expert review + data are complementary.
 - **`rebind`** — the consume-verification procedure. After a DS publish, swap stale instances onto the
   fresh main and re-audit, so you *know* the change is actually used (instances cache old layout until swapped).
+- **`behavioral-science-principles.md`** — the evidence + ethics canon (this project's behavioral
+  mechanisms + calibration + anti-pattern refusal list). `behavioral-scientist` owns + gates against it;
+  the `ux-flow-review` domain overlay cites it. Three complementary review gates guard handoff:
+  `flow-reviewer` (can they use it), `behavioral-scientist` (why does it work + is it honest),
+  `data-analyst` (does it test well).
 
 ## `consume` vs `build`
 

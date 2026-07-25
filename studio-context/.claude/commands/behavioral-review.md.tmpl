@@ -1,0 +1,23 @@
+---
+description: Behavioral-science evidence + ethics gate on a screen, flow, or copy line
+argument-hint: [screen / flow / copy line / node-id]
+---
+Use the **behavioral-scientist** subagent to run the **`evidence_lens`** from
+`skills/behavioral-science-principles.md` on $ARGUMENTS. For each pattern in play, answer four
+questions: **mechanism** (which one in the principles doc — or honestly none), **calibration**
+(strong / moderate / weak per the doc's calibration section), **guardrail** (the mechanism's specific
+one), and the **anti-pattern check** (the doc's refusal list — e.g. guilt/loss-aversion · fabricated
+scarcity/urgency · forced continuity / roach-motel · confirmshaming · variable-reward · notification
+spam · data hostage · the project's domain-specific redline).
+
+Honor the four guardrails as the bar: evidence-based not evidence-theatre · respect the project's
+ethical redlines · autonomy-supportive never manipulative · the core-loop effort budget wins ties.
+Load the current product decisions so no argument leans on a mechanic the product has removed.
+
+Return findings ranked: an anti-pattern / ethical-redline / manipulation finding is a **blocker**; an
+overclaimed or mechanism-less pattern is **major**; a missed positive-mechanism opportunity is
+**minor / opportunity**. Each finding names the mechanism, its tier, and the screen/step/string, with a
+fix or a route (copy → product-designer · layout → ui-designer · flow → product-designer · component
+gap → {{DS_REPO}}). Usability findings route to flow-reviewer; empirical validation is data-analyst's.
+
+Defer to the agent + doc — do not restate the mechanisms or calibration tiers here.

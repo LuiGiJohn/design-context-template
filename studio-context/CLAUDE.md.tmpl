@@ -51,11 +51,12 @@ A {{SYSTEM_NAME}} gap found while building routes **back** there; never hand-bui
 ## Current working state — snapshot (prune as it ages)
 - **🆕 Scaffolded from template.** This context was generated from the studio-context template.
   Scaffolding mirrors the sibling DS context: `CONTEXT.md` + `CLAUDE.md` (bootstrap), `README.md`,
-  `AGENTS-HANDOFF.md`, shared `DESIGN.md`, `skills/` (own `screens.md` + read-only mirrors of the 3
-  DS skills + `flow-layout` + `visual-craft` + `figma-versioning`), `kickoff-prompts/`, `.claude/`
-  (`product-designer` + `art-director` + `ui-designer` + `flow-reviewer` + `consumer-migrator` +
-  `data-analyst` agents, `/design-review` + `/consumer-audit` + `/art-direction` + `/rebind` +
-  `/usability-report` + `/relayout` + `/checkpoint` + `/changelog` commands, `launch.json`), and the
+  `AGENTS-HANDOFF.md`, shared `DESIGN.md`, `skills/` (own `screens.md` + `behavioral-science-principles.md`
+  + read-only mirrors of the 3 DS skills + `flow-layout` + `visual-craft` + `figma-versioning`),
+  `kickoff-prompts/`, `.claude/` (`product-designer` + `art-director` + `ui-designer` + `flow-reviewer` +
+  `behavioral-scientist` + `consumer-migrator` + `data-analyst` agents, `/design-review` +
+  `/behavioral-review` + `/consumer-audit` + `/art-direction` + `/rebind` + `/usability-report` +
+  `/relayout` + `/checkpoint` + `/changelog` commands, `launch.json`), and the
   `prototypes/{{PROTOTYPE_NAME}}` React/Vite usability prototype.
 - **{{PROTOTYPE_NAME}} prototype** — {{PROTOTYPE_DESC}} usability prototype, {{SYSTEM_NAME}} DS, instrumented
   (cohort separation + Microsoft Clarity heatmaps + PostHog time-on-task + SEQ + `/results` dashboard).
@@ -71,10 +72,10 @@ re-add the header), bump the consumed-version line in `CONTEXT.md`, **then run `
 ## Agent orchestration ({{SYSTEM_NAME}} screen-creation agents)
 
 This context is **screen + prototype only** — two core role-based subagents (`product-designer`,
-`ui-designer`) + three supporting (`art-director` = creative direction, `flow-reviewer` = independent
-review, `consumer-migrator` = migration), plus `data-analyst` for the empirical loop. On any task,
-decide the moment in the pipeline first, then delegate. Full map, pipeline, and operating rules: see
-`AGENTS-HANDOFF.md`.
+`ui-designer`) + supporting (`art-director` = creative direction, `flow-reviewer` = independent
+usability review, `behavioral-scientist` = independent evidence + ethics review, `consumer-migrator` =
+migration), plus `data-analyst` for the empirical loop. On any task, decide the moment in the pipeline
+first, then delegate. Full map, pipeline, and operating rules: see `AGENTS-HANDOFF.md`.
 
 | Route to | When | Write surface |
 |---|---|---|
@@ -82,6 +83,7 @@ decide the moment in the pipeline first, then delegate. Full map, pipeline, and 
 | `art-director` *(optional)* | creative direction from a reference/trend (the `visual-craft` canon) — deconstruct → filter through the token/brand fence → adapt-not-copy → 2–3 named directions → low-fi `Explorations` frames; hands a build spec to `ui-designer` | consumer file `Explorations / <flow>` (low-fi only) |
 | `ui-designer` | compose {{SYSTEM_NAME}} into pixel-perfect consumer screens, build-time design-review self-check, consumer drift sweep | consumer file `{{CONSUMER_FIGMA_KEY}}` |
 | `flow-reviewer` | INDEPENDENT heuristic evaluation of screens + flows (the `ux-flow-review` canon) — the usability gate | read-only review |
+| `behavioral-scientist` | INDEPENDENT mechanism + anti-manipulation gate (the `behavioral-science-principles.md` evidence base) — feeds `product-designer` | read-only review; owns the principles doc |
 | `consumer-migrator` | propagate a {{SYSTEM_NAME}} publish across consumer files (the `rebind` procedure) — confirm changes are consumed | consumer file(s) |
 | `data-analyst` | turn prototype analytics into screen-validation evidence (the `usability-analytics` canon) — feeds `product-designer` | read-only analysis |
 | _separate context_ | author tokens/components/variants, publish {{SYSTEM_NAME}}, drift, manifest, spiels | NOT handled here — `{{DS_REPO}}` (`ds-steward` / `component-designer` / `brand-designer`) |
@@ -101,6 +103,12 @@ go live. A {{SYSTEM_NAME}} gap → request to the DS context, never a hand-built
 - **`ux-flow-review` skill** — the single heuristic-evaluation canon (5 frameworks + {{DOMAIN}} + WCAG
   2.2 AA). `ui-designer` (self-check), `flow-reviewer` (gate), and `/design-review` all load it — no
   restating the frameworks anywhere, or they drift.
+- **`behavioral-science-principles.md` + `behavioral-scientist` agent** — the evidence + ethics gate.
+  This project's behavioral mechanisms → screen patterns, their strong-vs-suggestive calibration, and
+  the anti-pattern (dark-pattern) refusal list. The doc is single-sourced by the agent; the
+  `ux-flow-review` {{DOMAIN}} overlay and `/behavioral-review` cite it — evidence changes there, never
+  restated. Complementary to the usability gate: it asks *why does this work and is it honest*,
+  `flow-reviewer` asks *can they use it*.
 - **`visual-craft` skill + `art-director` agent** — the creative-direction canon (deconstruct →
   filter through the token/brand fence → adapt-not-copy → 2–3 named directions → low-fi Explorations).
   The optional stage between `product-designer` and `ui-designer`; run via `/art-direction`. Aesthetics
@@ -127,4 +135,4 @@ Operating rules (full detail in AGENTS-HANDOFF.md):
   `AGENTS-HANDOFF.md`) — the system/component slices belong to the DS context.
 
 Slash commands (thin wrappers that delegate to the agents — never duplicate the workflow, or it drifts):
-`/design-review` (→ flow-reviewer) · `/consumer-audit` (→ ui-designer) · `/art-direction` (→ art-director) · `/rebind` (→ consumer-migrator) · `/usability-report` (→ data-analyst) · `/relayout` (→ ui-designer, runs flow-layout) · `/checkpoint` + `/changelog` (→ figma-versioning)
+`/design-review` (→ flow-reviewer) · `/behavioral-review` (→ behavioral-scientist) · `/consumer-audit` (→ ui-designer) · `/art-direction` (→ art-director) · `/rebind` (→ consumer-migrator) · `/usability-report` (→ data-analyst) · `/relayout` (→ ui-designer, runs flow-layout) · `/checkpoint` + `/changelog` (→ figma-versioning)

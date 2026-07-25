@@ -57,6 +57,7 @@ without breaking projects already stamped from it.
 - `ds-context/skills/ds-tokens.md`, `ds-components.md` — your token/component catalog
 - `studio-context/skills/ds-tokens.md`, `ds-components.md`, `figma-gotchas.md` — read-only mirrors of the above
 - `studio-context/skills/screens.md` — your screen recipes
+- `studio-context/skills/behavioral-science-principles.md` — your domain's behavioral mechanisms + anti-patterns (the `behavioral-scientist` evidence base; the `ux-flow-review` domain overlay cites it)
 - `ds-context/manifest/` — your published-state baseline
 
 These ship as **format scaffolds with a TODO banner**, not empty files — the schema is documented so
