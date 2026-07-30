@@ -3,7 +3,7 @@ name: usability-analytics
 description: >
   The canon for turning a prototype's behavioral analytics into screen-validation EVIDENCE — the
   metrics taxonomy, best-practice benchmark thresholds, and the analysis procedure the data-analyst
-  runs and the product-designer validates against. Reads the ap-app-flow-style instrumentation (PostHog
+  runs and the product-designer validates against. Reads the {{PROTOTYPE_NAME}}-style instrumentation (PostHog
   events/funnels/cohorts + time-on-task, Microsoft Clarity heatmaps/replays, post-task SEQ, the
   /results dashboard) and benchmarks task success, efficiency, satisfaction, and drop-off against
   documented UX norms — triangulating quant (PostHog) with qual (Clarity), with honest statistical
@@ -26,13 +26,13 @@ evidence the `product-designer` uses to validate or revise screens — the empir
 
 ---
 
-## Sources (the ap-app-flow instrumentation; generalize per prototype)
+## Sources (the {{PROTOTYPE_NAME}} instrumentation; generalize per prototype)
 
 - **PostHog** — events + properties + funnels + cohorts + time-on-task. Events incl. `test_started`,
   `task_started` / `task_completed` / `task_failed` (tasks `login`, `find_pages`), `passcode_key` /
   `passcode_backspace`, `biometric_tapped`, `seq_rating`, `need_help_clicked`, `quick_action`,
   `page_discovered`, `$pageview`. Key props: `method`, `duration_s`, `cohort`, `attempts`, `wrong`,
-  `backspaces`, `rating`, `is_test`. Ready-made SQL lives in `prototypes/ap-app-flow/analytics-queries.md`.
+  `backspaces`, `rating`, `is_test`. Ready-made SQL lives in `prototypes/{{PROTOTYPE_NAME}}/analytics-queries.md`.
 - **Microsoft Clarity** — heatmaps (click/scroll), session replays, and behavioral signals: rage
   clicks, dead clicks, quick-backs, excessive scrolling. Filter the `is_test` tag.
 - **Post-task SEQ** — `seq_rating` (1–7) per task.

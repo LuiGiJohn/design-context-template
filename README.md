@@ -1,7 +1,7 @@
 # design-context-template
 
-A reusable factory for a **two-context design pipeline** — the same architecture proven on
-APS / Aster Pay, genericized so you can stand up a new project in minutes.
+A reusable factory for a **two-context design pipeline** — the same architecture proven on a
+production fintech design system, genericized so you can stand up a new project in minutes.
 
 Each project gets **two repos / Claude Code contexts**:
 
@@ -40,7 +40,7 @@ That's it. Everything project-specific lives in `project.config.yaml`; everythin
 ```
 HANDOFF.md                     ← copy-paste kickoff prompt for a fresh session (start here)
 project.config.yaml            ← fill this in (the single source of truth)
-project.config.example.yaml    ← the APS setup, worked end-to-end
+project.config.example.yaml    ← a sample setup, worked end-to-end
 TEMPLATE-GUIDE.md              ← placeholder reference + how to extend/update the template
 docs/ARCHITECTURE.md           ← the two-context boundary, the pipeline, the gates
 .claude/skills/init-project/   ← /init-project — reads config, renders both contexts

@@ -1,5 +1,6 @@
-# project.config.example.yaml — a fully worked example (the original APS / Aster Pay setup).
-# Copy the shape, not the values. This is `ds_mode: consume` because APS was already published.
+# project.config.example.yaml — a fully worked example.
+# Copy the SHAPE, not the values. Every value below is fictional sample data.
+# This one is `ds_mode: consume` because the design system was already published.
 
 ds_mode: consume
 
@@ -10,18 +11,18 @@ project:
   brand_shorthand:  "AP"
   parent_org:       "Aster Financial"
   domain:           "fintech"
-  github_owner:     "LuiGiJohn"
+  github_owner:     "your-github-handle"
 
 design_system:
-  figma_source_key: "AbCdEf1234567890GhIjKl"
-  library_key:      "lk-0000example0000example0000example0000example0000example0000"
+  figma_source_key: "AbCdEf1234567890GhIjKl"   # sample — the 22-char key from your DS file's URL
+  library_key:      "lk-0000example0000example0000example0000example0000example0000"  # sample — real ones are ~128 hex chars
   version:          "v0.9"
   published_date:   "2026-05-21"
-  fonts:            "Work Sans (400/500/600/700) + Inter"
+  fonts:            "Inter (400/500/600/700) + Source Serif 4"
   token_prefixes:   ["Surface", "Text", "Border", "Icon", "Scale", "Border-Radius", "Border-Width"]
 
 consumer:
-  figma_file_key:  "MnOpQr0987654321StUvWx"
+  figma_file_key:  "MnOpQr0987654321StUvWx"     # sample — the screen write-surface file
   file_name:       "AP-Onboarding-Screens"
   frame:
     width:    402
@@ -41,13 +42,13 @@ prototype:
 engineering:
   component_lib:  "ui"                                # shared RN component package name  → {{COMPONENT_LIB}}
   native_stack:   "Expo / React Native"              #                                   → {{NATIVE_STACK}}
-  app_package_id: "com.example.asterpay"           # native app id                     → {{APP_PACKAGE_ID}}
-  eas_project:    "@example/aster-pay"              # EAS project slug                  → {{EAS_PROJECT}}
+  app_package_id: "com.example.asterpay"             # native app id                     → {{APP_PACKAGE_ID}}
+  eas_project:    "@example/aster-pay"               # EAS project slug                  → {{EAS_PROJECT}}
 
 repos:
   ds_context:          "aps-design-system-context"
   studio_context:      "aps-studio-context"
-  engineering_context: "aps-app"                     # omit this line for a design-only project
+  engineering_context: "aster-pay-app"                # omit this line for a design-only project
 
 user_preferences:
   methodology:   "Atomic Design, WCAG 2.2 AA, semantic HTML + ARIA by default"

@@ -29,7 +29,7 @@ project:
 
 # ── DESIGN SYSTEM (the thing the DS context owns) ────────────────────────────
 design_system:
-  figma_source_key:  ""     # APS-source file key.  consume: REQUIRED (read-only ref).
+  figma_source_key:  ""     # the design system-source file key.  consume: REQUIRED (read-only ref).
                             #                        build: leave "" — created during init, paste after.
                             #                                                            → {{DS_FIGMA_KEY}}
   library_key:       ""     # published library key (lk-...). consume: REQUIRED. build: fill after first publish.
@@ -61,7 +61,7 @@ prototype:
 
 # ── REPOS (where the two rendered contexts will live) ────────────────────────
 repos:
-  ds_context:     ""        # e.g. "aps-claude-context"  (the DS-authoring repo)   → {{DS_REPO}}
+  ds_context:     ""        # e.g. "aps-design-system-context"  (the DS-authoring repo)   → {{DS_REPO}}
   studio_context: ""        # e.g. "aps-studio-context"  (the screens+proto repo)  → {{STUDIO_REPO}}
 
 # ── USER PREFERENCES (carried across every project — edit once, rarely again) ─

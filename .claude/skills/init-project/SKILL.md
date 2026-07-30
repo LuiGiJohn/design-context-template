@@ -5,7 +5,7 @@ description: Scaffold a new two-context design project from this template. Reads
 
 # init-project — render the template into two working contexts
 
-This template is a **factory** for the two-context design system used on APS/Aster Pay:
+This template is a **factory** for a two-context design system proven in production:
 a **DS context** (authors + publishes a design system) and a **studio context** (consumes it
 to build screens + run usability-validated prototypes). This skill stamps out a fresh pair for
 a new project from `project.config.yaml`.

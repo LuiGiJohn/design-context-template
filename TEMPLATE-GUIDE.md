@@ -22,9 +22,9 @@ without breaking projects already stamped from it.
 | Placeholder | Source (`project.config.yaml`) | Notes |
 |---|---|---|
 | `{{PROJECT_NAME}}` | `project.name` | product/org name |
-| `{{SYSTEM_NAME}}` | `project.system_name` | DS short name (was "APS") |
+| `{{SYSTEM_NAME}}` | `project.system_name` | DS short name (e.g. "APS") |
 | `{{SYSTEM_FULL_NAME}}` | `project.system_full_name` | expansion |
-| `{{BRAND_SHORT}}` | `project.brand_shorthand` | was "AP" |
+| `{{BRAND_SHORT}}` | `project.brand_shorthand` | e.g. "AP" |
 | `{{PARENT_ORG}}` | `project.parent_org` | optional; blank → clause dropped |
 | `{{DOMAIN}}` | `project.domain` | e.g. "fintech" |
 | `{{GITHUB_OWNER}}` | `project.github_owner` | repo owner |
