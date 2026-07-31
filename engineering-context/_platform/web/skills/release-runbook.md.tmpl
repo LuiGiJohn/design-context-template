@@ -1,0 +1,73 @@
+# release-runbook
+
+**Version**: v0.1 (scaffold)
+
+> ⛔ **TODO — SCAFFOLD, RECORD YOUR REAL COMMANDS.** This is `build-uploader`'s runbook for {{PROJECT_NAME}}
+> ({{RELEASE_PROJECT_LABEL}} `{{RELEASE_PROJECT}}`, {{APP_ID_LABEL}} `{{APP_ID}}`). The **verification
+> discipline + gate** below are ready to use; the **exact commands + host setup** are what you record per
+> project — hosting CLIs change their flags and their defaults, so build the command from HERE, not from
+> memory.
+>
+> On any release: record the deployment id + commit + rollback target below, then commit + push (never secrets).
+
+## The release gate (system-agnostic — keep)
+
+Nothing ships until all clear: **provenance** (real non-zero build output from the intended commit, with
+the expected routes) · **secrets contained** (no server-only value in the client bundle) · **version**
+(immutable deployment id + commit recorded before promotion, so a rollback target exists) ·
+**declarations honest** (privacy/cookie/analytics/disclosure match the built app + the live pages) ·
+**promotion confirmed** (re-read {{RELEASE_CONFIRM}}, not the deploy response).
+
+## Verification discipline (system-agnostic — keep — earned the hard way)
+
+- 🔴 **Verify by artifact, never by a piped `| tail`** — the exit code is tail's; a failed build reports
+  success. Redirect full output, grep it, confirm a real non-zero build output containing the routes you
+  expect.
+- 🔴 **Prove a check can find what you KNOW is there before trusting an all-clear** — a green check on the
+  wrong signal is worse than none. Before trusting a "no secrets in the bundle" grep, plant a known string
+  and confirm the grep finds it; minifiers rename identifiers, so searching for `MY_SECRET_KEY` can come
+  back clean while its value sits in the bundle. **Grep for values, not names.**
+- **Re-read the live URL to confirm a promotion** — fetch production and check for something only the new
+  build has (version marker, changed route, new asset hash). An alias can still point at the previous
+  deployment while the deploy command reports success.
+- **Declarations are the fact in the shipped app, not the intention in config** — a disabled analytics
+  flag is an intention; a network request from the live page is the fact. Read the running site.
+- **Know the rollback before you need it** — record the previous deployment id first.
+
+## Secrets (system-agnostic — keep)
+
+Production secrets live in the host's environment store, never in git. Anything that must reach the
+browser is public by definition — treat the client/server boundary as the security boundary, and verify
+it in the built bundle rather than trusting the variable's prefix.
+
+---
+
+## Commands — record yours
+
+> `TODO:` the exact, working commands for THIS project.
+
+- **Build (production):** `TODO:` + how you verify the artifact (non-zero output, expected routes present,
+  commit provenance).
+- **Secret check:** `TODO:` the value-based grep over the built client output + the planted-string proof
+  that the grep works.
+- **Deploy:** `TODO:` (the host's deploy command + which environment it targets).
+- **Promote / alias to production:** `TODO:` + the live-URL re-read that confirms it.
+- **Rollback:** `TODO:` (how to repoint production at the previous deployment, and how to confirm).
+- **Declarations source:** `TODO:` where the privacy/cookie/analytics/disclosure copy lives.
+- **Version of record:** `TODO:` where the authoritative version/deployment id comes from.
+
+## Host setup gotchas — record yours
+
+> `TODO:` the account/config walls you hit once so the next release doesn't (environment-variable scoping
+> per environment, build-time vs runtime vars, domain/DNS propagation, caching + revalidation surprises,
+> preview-vs-production differences).
+
+## Release log — append per release
+
+| Deployment | Commit | Environment | Date | Rollback target | Notes |
+|---|---|---|---|---|---|
+| `TODO` | | | | | |
+
+## Changelog
+- **v0.1**: scaffold — release gate, verification discipline, secrets rule, empty command + gotcha +
+  release-log slots. Record real commands on first release.

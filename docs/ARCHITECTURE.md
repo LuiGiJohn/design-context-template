@@ -84,26 +84,38 @@ The two contexts above are Figma-centric: they design. A third context, **`engin
 the design into **shipping software** — rendered only when `repos.engineering_context` is set (design-only
 projects omit it). It owns three roles:
 
-- **`component-engineer`** — the ONE coded implementation of the DS: a React Native component library
+- **`component-engineer`** — the ONE coded implementation of the DS: a component library
   (`{{COMPONENT_LIB}}`) + Storybook, with tokens GENERATED from the Figma DS (never hand-typed).
-- **`app-engineer`** — the native app (Expo / React Native), composing the shared library into the
-  validated screens; owns storage, navigation, native modules, and device verification.
-- **`build-uploader`** — the signed build, versioning, data-safety declarations, and store upload +
-  track promotion, under a verify-by-artifact discipline.
+- **`app-engineer`** — the app, composing the shared library into the validated screens; owns state,
+  navigation, platform integration, and the platform's verification gate.
+- **`build-uploader`** — the build, versioning, public declarations, and the ship, under a
+  verify-by-artifact discipline.
 
 ```
 DS CONTEXT (Figma) ──published DS──▶ component-engineer ──▶ {{COMPONENT_LIB}} + Storybook
                                                                     │  (one coded library)
                     ┌────────────────────────────────────────────────┼──────────────────────────────┐
                     ▼                                                                                  ▼
-STUDIO CONTEXT: screens ──▶ prototype (Expo web export → Vercel, consumes {{COMPONENT_LIB}})            app-engineer ──▶ build-uploader
-                    │                    usability gate (product-designer + data-analyst)              (native app)      (EAS + store)
+STUDIO CONTEXT: screens ──▶ prototype (consumes {{COMPONENT_LIB}})                            app-engineer ──▶ build-uploader
+                    │                    usability gate (product-designer + data-analyst)
                     └───────────── the validated flow is the app's spec ────────────────────────────────┘
 ```
 
+**The engineering context has two flavours**, chosen by `engineering.platform`. The roster, pipeline, and
+gates are identical; only `app-engineer`, `build-uploader`, their commands, and the release runbook
+differ — those live in `engineering-context/_platform/<platform>/` and overlay the shared base at render
+time.
+
+| | `native` | `web` |
+|---|---|---|
+| App | Expo / React Native | Next.js / React |
+| Verification gate | **device** — real hardware | **browser** — real browser, production build |
+| Release | signed artifact → EAS + store, confirmed by re-reading the track | immutable deployment → host + domain, confirmed by re-reading the live URL |
+
 **The one idea that makes this pay off: one coded library, three consumers** (Storybook, the prototype,
-the app). The prototype is an Expo web export of the *same* components the app ships, so what you
-usability-test is what you ship — prototype→app rework drops from "re-implement" to "wire native
-concerns." It adds three gates to the pipeline: **parity** (code matches Figma, verified in Storybook),
-**device** (real-hardware checks emulators can't prove), and **release** (verify-by-artifact + honest
-declarations + upload confirmed by re-reading the store). Full manual: `engineering-context/AGENTS-HANDOFF.md`.
+the app). The prototype renders the *same* components the app ships, so what you usability-test is what
+you ship — prototype→app rework drops from "re-implement" to "wire the platform concerns." (On `native`
+that's an Expo web export of the RN components; on `web` there is no export step at all.) It adds three
+gates to the pipeline: **parity** (code matches Figma, verified in Storybook), the platform's
+**device/browser** gate, and **release** (verify-by-artifact + honest declarations + confirmed by
+re-reading what actually serves). Full manual: `engineering-context/AGENTS-HANDOFF.md`.

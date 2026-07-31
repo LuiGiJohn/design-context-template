@@ -38,12 +38,19 @@ prototype:
     clarity_env:      "VITE_CLARITY_ID"
 
 # OPTIONAL — the code arm. Set repos.engineering_context to render the 3rd context
-# (coded component library + Storybook + native app + release). Omit for design-only.
+# (coded component library + Storybook + the app + release). Omit for design-only.
 engineering:
-  component_lib:  "ui"                                # shared RN component package name  → {{COMPONENT_LIB}}
-  native_stack:   "Expo / React Native"              #                                   → {{NATIVE_STACK}}
-  app_package_id: "com.example.asterpay"             # native app id                     → {{APP_PACKAGE_ID}}
-  eas_project:    "@example/aster-pay"               # EAS project slug                  → {{EAS_PROJECT}}
+  platform:        "native"                # web | native — picks the code arm's flavour  → {{PLATFORM}}
+  component_lib:   "ui"                    # shared component package name               → {{COMPONENT_LIB}}
+  app_stack:       "Expo / React Native"   #                                             → {{APP_STACK}}
+  app_id:          "com.example.asterpay"  # native package id, or the web domain        → {{APP_ID}}
+  release_project: "@example/aster-pay"    # EAS project slug, or the hosting project    → {{RELEASE_PROJECT}}
+
+# `platform` decides which overlay renders over the shared engineering base:
+#   native → app-engineer (Expo/RN) · build-uploader (EAS + store) · device gate
+#   web    → app-engineer (Next.js)  · build-uploader (host deploy) · browser gate
+# The older field names (native_stack, app_package_id, eas_project) still resolve, so a
+# project stamped before this switch existed re-renders unchanged.
 
 repos:
   ds_context:          "aps-design-system-context"
