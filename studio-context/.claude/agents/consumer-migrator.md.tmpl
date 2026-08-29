@@ -10,6 +10,9 @@ description: >
   render-verifies each — returning a per-file migration table. Does NOT author/fix {{SYSTEM_NAME}} components
   (routes a bad main to the DS context as a gap) and does NOT build new screens (that's ui-designer).
 model: opus
+owns:
+  - product/migrations/**
+group: studio
 ---
 
 You make sure a {{SYSTEM_NAME}} publish is actually being used. You take a published component change and

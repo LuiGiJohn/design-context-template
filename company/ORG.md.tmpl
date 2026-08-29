@@ -1,0 +1,112 @@
+# {{PROJECT_NAME}} — Org Chart
+
+The company that builds {{PROJECT_NAME}}. Seven groups, each an **ownership lane**; four repos, each a
+**code location**. They deliberately do not map 1:1 — App Builder and App Publisher share one repo but
+never share a write surface.
+
+## The invariant that makes this work
+
+> **Single writer.** Every file surface has exactly one owning role. If two roles can write the same
+> file, one of them is wrong and the org has a defect.
+
+This is not a norm, it is a checkable property. `company/check-org.mjs` fails if two roles declare
+overlapping `owns` globs. Run it after editing any charter.
+
+## Groups
+
+### 1 · Design System — repo `{{DS_REPO}}`
+The source of truth for how {{PROJECT_NAME}} looks. Publishes; never consumes.
+
+| Role | Owns | Never |
+|---|---|---|
+| `ds-steward` | tokens, variables, collections, modes | screen layout |
+| `component-designer` | Figma components + variants | screens, tokens |
+| `brand-designer` | identity, logo, brand expression | product UI |
+| `design-system-engineer` | the coded mirror (`{{COMPONENT_LIB}}`) + Storybook | Figma authoring, app screens |
+| `ds-publisher` | library publication + version/changelog | design authoring |
+
+`design-system-engineer` writes code in `{{ENGINEERING_REPO}}` but reports to this group — its entire
+discipline is Figma parity, and its output is consumed by **both** the prototype and the app. Grouping
+it with engineering would hide that second consumer.
+
+### 2 · Leadership — repo `{{STUDIO_REPO}}`
+| Role | Owns | Never |
+|---|---|---|
+| `orchestrator` | decomposition, routing, tracker truth | doing the work it routes |
+| `chief-product-officer` | vision, principles, north star, go/no-go | specs, pixels, code |
+| `product-manager` | PRD, backlog, prioritization, sprints | strategy, design |
+| `business-analyst` | market/competitive research, KPIs, risk | product decisions |
+
+### 3 · Studio — repo `{{STUDIO_REPO}}`
+| Role | Owns | Never |
+|---|---|---|
+| `product-designer` | validated screens; coordinates ux + ui | components, code |
+| `ux-designer` | flow spec + acceptance criteria | pixels |
+| `ui-designer` | Figma screen build | component internals |
+| `ux-writer` | all user-facing copy + localization · **owns the language gate** | layout |
+| `art-director` | visual direction, layout, imagery | component specs, motion |
+| `motion-designer` | transitions, micro-interactions, gestures, haptics, reduced-motion | building it, motion tokens |
+| `flow-reviewer` | independent heuristic + WCAG evaluation (read-only) | building anything |
+| `behavioral-scientist` | behavior design, habit + ethics review | UI decisions |
+| `data-analyst` | usability evidence, study analysis | product scope |
+| `consumer-migrator` | migration of screens onto new DS versions | new design |
+
+### 4 · App Builder — repo `{{ENGINEERING_REPO}}`
+| Role | Owns | Never |
+|---|---|---|
+| `developer` | the {{APP_KIND}} — screens, nav, storage, native modules | components, builds, submission |
+| `qa-engineer` | test scenarios, regression baseline, the pre-publish gate | fixing what it finds |
+
+One `developer` covers {{PLATFORM_TARGETS}} because it is one codebase — a platform split would
+create a handoff for what is a single file change. Platform *verification* is real and belongs to
+`qa-engineer`, which owns the matrix.
+
+### 5 · App Publisher — repo `{{ENGINEERING_REPO}}`
+| Role | Owns | Never |
+|---|---|---|
+| `release-engineer` | build, signing, versioning, artifact provenance, submit | app code, store copy |
+| `store-manager` | listing fields, assets, release notes, track promotion | writing marketing copy, the binary |
+
+Same repo as App Builder, different write surface: `release-engineer` owns build + release config,
+`developer` owns `src/`. Neither touches the other.
+
+### 6 · Marketing — repo `{{GROWTH_REPO}}`
+| Role | Owns | Never |
+|---|---|---|
+| `marketing-lead` | positioning, GTM, ASO, campaigns, **all store listing copy** | in-app copy (`ux-writer`) |
+| `creative-director` | video concept, narrative, direction | writing localized copy |
+| `motion-editor` | motion compositions, renders, social asset production | narrative decisions |
+
+**Store listing copy has exactly one author: `marketing-lead`.** `store-manager` publishes it,
+`creative-director` illustrates it. This resolves a three-way collision that existed before.
+
+### 7 · Operations — repo `{{GROWTH_REPO}}`
+| Role | Owns | Never |
+|---|---|---|
+| `support-lead` | store reviews, crash triage, feedback → backlog | prioritization (`product-manager`) |
+| `compliance-officer` | privacy policy, data-safety + App Privacy declarations, policy review | shipping decisions |
+| `growth-analyst` | funnels, retention, activation, experiments | usability evidence (`data-analyst`) |
+| `finance-ops` | budget, account + service costs, monetization mechanics | pricing strategy (`cpo`) |
+
+## Routing
+
+`orchestrator` decomposes a goal and names an owner per piece. It **cannot dispatch** — a subagent
+cannot spawn subagents. Dispatch happens one of two ways:
+
+- **Main thread** — you or the assistant launch each agent per the routing plan.
+- **Workflow** — `{{STUDIO_REPO}}/.claude/workflows/*.mjs` dispatches deterministically, with gates between phases.
+
+Use a workflow when the work fans out (many screens, many checks). Use the main thread when the work
+is sequential and each step informs the next.
+
+## Scaling down
+
+Not every project needs 27 roles. `project.config.yaml` → `org.groups` enables groups per project:
+
+```yaml
+org:
+  groups: [design-system, leadership, studio, app-builder, app-publisher, marketing, operations]
+```
+
+A design-only engagement drops `app-builder`, `app-publisher`, `operations`. A solo prototype might run
+`design-system` + `studio` alone. Disabled groups render no agents and no commands.

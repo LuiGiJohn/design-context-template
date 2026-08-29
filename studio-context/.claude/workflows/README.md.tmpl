@@ -1,0 +1,30 @@
+# {{PROJECT_NAME}} — Workflows
+
+Workflows are how `orchestrator`'s routing plan actually gets dispatched. A subagent cannot spawn
+subagents; a workflow script can, deterministically, with gates between phases.
+
+## What belongs here
+
+**Fan-out, read-only work.** Many screens, many checks, many independent items — where the wall-clock
+win is real and a wrong result costs a re-run, not a rollback.
+
+- `quality-sweep.mjs` — heuristic + a11y + DS-fidelity + copy review across screens, adversarially
+  verified. Pass screens via `args`.
+
+## What does NOT belong here
+
+🔴 **Publishing.** The release path (G5 → G6 → store) is sequential, irreversible in the ways that
+matter, and needs a human at submission. Fanning it out buys nothing and risks a great deal. Run it
+from the main thread, one gate at a time.
+
+Anything that writes to a shared surface from more than one agent at once. If two agents in a
+`parallel()` could touch the same file, the workflow violates single-writer and will produce
+interleaved garbage. Use `isolation: 'worktree'` or re-cut the phases.
+
+## Running one
+
+```
+Workflow({ scriptPath: '.claude/workflows/quality-sweep.mjs', args: ['home', 'onboarding'] })
+```
+
+Workflows are opt-in: they only run when you ask for one explicitly.

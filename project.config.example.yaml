@@ -44,7 +44,13 @@ engineering:
   component_lib:   "ui"                    # shared component package name               → {{COMPONENT_LIB}}
   app_stack:       "Expo / React Native"   #                                             → {{APP_STACK}}
   app_id:          "com.example.asterpay"  # native package id, or the web domain        → {{APP_ID}}
-  release_project: "@example/aster-pay"    # EAS project slug, or the hosting project    → {{RELEASE_PROJECT}}
+  release_project: "@example/aster-pay"    # EAS project slug, or the hosting project
+
+  # Gate commands — what G1 and G2 actually run. Defaults per platform; override when the
+  # project's scripts are named differently. A gate that shells out to a command cannot be
+  # rationalized past the way a prose checklist can.
+  # ds_parity_cmd:   "npm run tokens:sync -- --check && npm run storybook:test"
+  # build_check_cmd: "npm run typecheck && npm run lint && npm test && npm run check:release"    → {{RELEASE_PROJECT}}
 
 # `platform` decides which overlay renders over the shared engineering base:
 #   native → app-engineer (Expo/RN) · build-uploader (EAS + store) · device gate
@@ -52,10 +58,25 @@ engineering:
 # The older field names (native_stack, app_package_id, eas_project) still resolve, so a
 # project stamped before this switch existed re-renders unchanged.
 
+# ── the org ──────────────────────────────────────────────────────────────────
+# Which groups this project staffs. Drop a group and its roles + commands don't render.
+# A design-only engagement: [design-system, studio]. A solo pre-launch build:
+# [design-system, studio, app-builder]. The full company is all seven.
+org:
+  groups:
+    - design-system
+    - leadership
+    - studio
+    - app-builder
+    - app-publisher
+    - marketing
+    - operations
+
 repos:
   ds_context:          "aps-design-system-context"
   studio_context:      "aps-studio-context"
   engineering_context: "aster-pay-app"                # omit this line for a design-only project
+  growth_context:      "aster-pay-growth"             # marketing + operations; omit pre-launch
 
 user_preferences:
   methodology:   "Atomic Design, WCAG 2.2 AA, semantic HTML + ARIA by default"

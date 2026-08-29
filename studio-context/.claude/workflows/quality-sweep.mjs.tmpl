@@ -1,0 +1,106 @@
+export const meta = {
+  name: '{{BRAND_SHORT}}-quality-sweep',
+  description: 'Fan out heuristic, accessibility and DS-fidelity review across screens, then adversarially verify every finding',
+  whenToUse: 'Before a release, or after a batch of screens lands. Read-only — it reports, it does not change anything.',
+  phases: [
+    { title: 'Review',    detail: 'one reviewer per screen per lens' },
+    { title: 'Verify',    detail: 'independent skeptics try to refute each finding' },
+    { title: 'Synthesize', detail: 'merge, dedupe, rank by severity' },
+  ],
+}
+
+// Screens come in via `args`. Pass an array of screen names/ids:
+//   Workflow({ scriptPath: '.claude/workflows/quality-sweep.mjs', args: ['home', 'onboarding'] })
+const SCREENS = Array.isArray(args) && args.length ? args : ['(no screens passed — pass an array via args)']
+
+// Distinct lenses, not redundant reviewers. Diversity catches failure modes redundancy can't.
+const LENSES = [
+  { key: 'heuristic',  role: 'flow-reviewer',      ask: 'Nielsen + the flow canon: composition and sequencing defects' },
+  { key: 'a11y',       role: 'flow-reviewer',      ask: 'WCAG 2.2 AA: contrast from RESOLVED tokens, tap targets, roles/labels, reduced-motion' },
+  { key: 'ds-fidelity',role: 'design-system-engineer', ask: 'DS fidelity: unbound values, local overrides, components that should be shared' },
+  { key: 'copy',       role: 'ux-writer',          ask: 'Copy: error/empty state quality, and ANY string not in the approved set (gate G4)' },
+]
+
+const FINDINGS = {
+  type: 'object',
+  properties: {
+    findings: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          severity: { type: 'string', enum: ['P1', 'P2', 'P3'] },
+          title:    { type: 'string' },
+          where:    { type: 'string' },
+          evidence: { type: 'string' },
+          fix:      { type: 'string' },
+        },
+        required: ['severity', 'title', 'where', 'evidence', 'fix'],
+      },
+    },
+  },
+  required: ['findings'],
+}
+
+const VERDICT = {
+  type: 'object',
+  properties: {
+    refuted: { type: 'boolean' },
+    why:     { type: 'string' },
+  },
+  required: ['refuted', 'why'],
+}
+
+log(`sweeping ${SCREENS.length} screen(s) x ${LENSES.length} lenses`)
+
+// pipeline, not parallel: a screen's findings start verifying while other screens are still
+// being reviewed. A barrier here would waste the fast reviewers' wall-clock for no benefit —
+// nothing in verification needs to see the other screens' findings.
+const perScreen = await pipeline(
+  SCREENS,
+  (screen) =>
+    parallel(
+      LENSES.map((lens) => () =>
+        agent(
+          `Act as \`${lens.role}\`. Review the {{PROJECT_NAME}} screen "${screen}".\n` +
+          `Lens: ${lens.ask}\n` +
+          `Read-only. Report only defects you can point at, each with a concrete fix. ` +
+          `No finding without evidence — an assertion that something "could be confusing" is not a finding.`,
+          { label: `${lens.key}:${screen}`, phase: 'Review', schema: FINDINGS },
+        ),
+      ),
+    ).then((rs) => ({ screen, findings: rs.filter(Boolean).flatMap((r) => r.findings) })),
+
+  // Verify each finding by trying to REFUTE it. Default-to-refuted on uncertainty keeps
+  // plausible-but-wrong findings out of the report.
+  (reviewed) =>
+    parallel(
+      reviewed.findings.map((f) => () =>
+        agent(
+          `Try to REFUTE this finding about "${reviewed.screen}":\n` +
+          `${f.severity} — ${f.title}\nwhere: ${f.where}\nevidence: ${f.evidence}\n\n` +
+          `Is it actually true, and actually a defect? If you are uncertain, refute it.`,
+          { label: `verify:${f.title.slice(0, 32)}`, phase: 'Verify', schema: VERDICT },
+        ).then((v) => ({ ...f, screen: reviewed.screen, survived: v ? !v.refuted : false })),
+      ),
+    ),
+)
+
+const confirmed = perScreen.flat().filter(Boolean).filter((f) => f.survived)
+const dropped = perScreen.flat().filter(Boolean).length - confirmed.length
+
+log(`${confirmed.length} confirmed, ${dropped} refuted in verification`)
+
+const RANK = { P1: 0, P2: 1, P3: 2 }
+confirmed.sort((a, b) => RANK[a.severity] - RANK[b.severity])
+
+return {
+  screens: SCREENS,
+  confirmed,
+  refuted_count: dropped,
+  by_severity: {
+    P1: confirmed.filter((f) => f.severity === 'P1').length,
+    P2: confirmed.filter((f) => f.severity === 'P2').length,
+    P3: confirmed.filter((f) => f.severity === 'P3').length,
+  },
+}

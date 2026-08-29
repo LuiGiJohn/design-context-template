@@ -1,0 +1,8 @@
+{
+  "name": "startup-os",
+  "version": "0.1.0",
+  "description": "A full startup org as Claude Code agents — seven groups, 29 roles, eight gates, and the handoff contracts between them.",
+  "author": { "name": "Luigi-John Canosa" },
+  "keywords": ["agents", "design-system", "product", "release", "marketing", "org"],
+  "_note": "Scaffolding for the plugin-later path. The template renders per-project via scripts/init-project.mjs today; packaging as a plugin means resolving {{PLACEHOLDER}} at install time instead of render time. Do not publish until the roles have proven themselves on a second project."
+}

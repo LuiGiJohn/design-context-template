@@ -84,25 +84,25 @@ The two contexts above are Figma-centric: they design. A third context, **`engin
 the design into **shipping software** — rendered only when `repos.engineering_context` is set (design-only
 projects omit it). It owns three roles:
 
-- **`component-engineer`** — the ONE coded implementation of the DS: a component library
+- **`design-system-engineer`** — the ONE coded implementation of the DS: a component library
   (`{{COMPONENT_LIB}}`) + Storybook, with tokens GENERATED from the Figma DS (never hand-typed).
-- **`app-engineer`** — the app, composing the shared library into the validated screens; owns state,
+- **`developer`** — the app, composing the shared library into the validated screens; owns state,
   navigation, platform integration, and the platform's verification gate.
-- **`build-uploader`** — the build, versioning, public declarations, and the ship, under a
+- **`release-engineer`** — the build, versioning, public declarations, and the ship, under a
   verify-by-artifact discipline.
 
 ```
-DS CONTEXT (Figma) ──published DS──▶ component-engineer ──▶ {{COMPONENT_LIB}} + Storybook
+DS CONTEXT (Figma) ──published DS──▶ design-system-engineer ──▶ {{COMPONENT_LIB}} + Storybook
                                                                     │  (one coded library)
                     ┌────────────────────────────────────────────────┼──────────────────────────────┐
                     ▼                                                                                  ▼
-STUDIO CONTEXT: screens ──▶ prototype (consumes {{COMPONENT_LIB}})                            app-engineer ──▶ build-uploader
+STUDIO CONTEXT: screens ──▶ prototype (consumes {{COMPONENT_LIB}})                            developer ──▶ release-engineer
                     │                    usability gate (product-designer + data-analyst)
                     └───────────── the validated flow is the app's spec ────────────────────────────────┘
 ```
 
 **The engineering context has two flavours**, chosen by `engineering.platform`. The roster, pipeline, and
-gates are identical; only `app-engineer`, `build-uploader`, their commands, and the release runbook
+gates are identical; only `developer`, `release-engineer`, their commands, and the release runbook
 differ — those live in `engineering-context/_platform/<platform>/` and overlay the shared base at render
 time.
 

@@ -12,22 +12,22 @@ screens (`{{STUDIO_REPO}}`) as the app's spec. A Figma DS gap routes to `{{DS_RE
 `{{STUDIO_REPO}}`.
 
 ## Project quick-ref
-- Platform: **{{PLATFORM}}** — sets which `app-engineer` / `build-uploader` / release-runbook variant is here
+- Platform: **{{PLATFORM}}** — sets which `developer` / `release-engineer` / release-runbook variant is here
 - Engineering repo (write surface): `{{ENGINEERING_REPO}}`
 - Shared component library: `{{COMPONENT_LIB}}` ({{COMPONENT_KIND}} + coded tokens) + Storybook — consumed
   by {{PROTO_CONSUMER}} AND the {{APP_KIND}}
 - App: {{APP_STACK}}, {{APP_ID_LABEL}} `{{APP_ID}}`, {{RELEASE_PROJECT_LABEL}} `{{RELEASE_PROJECT}}`
 - Figma DS source (read-only reference): `{{DS_FIGMA_KEY}}` — published by `{{DS_REPO}}`
 - Fonts: {{FONTS}} — preload before first paint
-- Agents: `component-engineer` (library + Storybook), `app-engineer` ({{APP_KIND}}), `build-uploader` (release)
+- Agents: `design-system-engineer` (library + Storybook), `developer` ({{APP_KIND}}), `release-engineer` (release)
 
 ## How to work efficiently here (hard-won lessons)
 1. **One coded library, three consumers.** Storybook, the prototype, and the app render the SAME
    `{{COMPONENT_LIB}}` components. Never fork per consumer; a gap is a library build here or a Figma DS
    request to `{{DS_REPO}}`. This is what keeps prototype→app rework near-zero.
 2. **Tokens are GENERATED from the Figma DS, never hand-typed.** Hand-maintained token files drift and
-   resolve to silent defaults. `component-engineer` regenerates on every {{SYSTEM_NAME}} republish and diffs.
-3. **The prototype is the spec.** The usability prototype renders the same components, so `app-engineer`
+   resolve to silent defaults. `design-system-engineer` regenerates on every {{SYSTEM_NAME}} republish and diffs.
+3. **The prototype is the spec.** The usability prototype renders the same components, so `developer`
    wires platform concerns onto a validated screen — it does not re-draw UI. Re-implementing a screen's
    layout means something drifted; fix the library, don't rebuild.
 4. **Verify by artifact, never by a piped `| tail`.** The exit code you read is tail's — a failed build
@@ -44,8 +44,8 @@ screens (`{{STUDIO_REPO}}`) as the app's spec. A Figma DS gap routes to `{{DS_RE
 - MCP minimalism: connect only what the task needs (GitHub; Figma when reading the DS export).
 
 ## Current working state — snapshot (prune as it ages)
-- **🆕 Scaffolded from template** (platform: `{{PLATFORM}}`). Roster: `component-engineer` +
-  `app-engineer` + `build-uploader`; commands `/component-build`, `/app-build`, `/release`; skills
+- **🆕 Scaffolded from template** (platform: `{{PLATFORM}}`). Roster: `design-system-engineer` +
+  `developer` + `release-engineer`; commands `/component-build`, `/app-build`, `/release`; skills
   `shared-component-library` + `release-runbook` (both scaffolds — populate as you build).
 - **Open dependency** — the coded tokens track {{SYSTEM_NAME}} **{{DS_VERSION}}**; after the DS context's
   next publish, re-sync (`/component-build sync`) and re-check parity.
@@ -61,4 +61,4 @@ On any component change: update its story + the shared-component-library skill, 
 prototype + app to bump. On a release: record version + commit + where it landed in the release runbook.
 
 ## Slash commands (thin wrappers that delegate — never duplicate the workflow, or it drifts)
-`/component-build` (→ component-engineer) · `/app-build` (→ app-engineer) · `/release` (→ build-uploader)
+`/component-build` (→ design-system-engineer) · `/app-build` (→ developer) · `/release` (→ release-engineer)
