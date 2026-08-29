@@ -3,8 +3,8 @@
 **Version**: v0.1 (scaffold)
 
 > ⛔ **TODO — SCAFFOLD, POPULATE AS YOU BUILD.** This is the map of `{{COMPONENT_LIB}}` — the ONE coded
-> implementation of {{SYSTEM_NAME}}, consumed by Storybook, the usability prototype (Expo web export →
-> Vercel), and the native app. `component-engineer` owns it. The **rules + token-sync discipline** below
+> implementation of {{SYSTEM_NAME}}, consumed by Storybook, {{PROTO_CONSUMER}},
+> and the {{APP_KIND}}. `component-engineer` owns it. The **rules + token-sync discipline** below
 > are ready to use; the **Component catalog** + **token map** are what you fill in per project.
 >
 > On any component change: update this file + the Storybook story, then commit + push.
@@ -20,22 +20,22 @@ SAME published version of `{{COMPONENT_LIB}}`.
 
 Coded tokens are GENERATED from the published Figma DS (`{{DS_REPO}}`), not hand-typed:
 1. Export the Figma variables/styles (the DS context's manifest is the key list).
-2. Transform to the RN token module (names/keys mirror the manifest so a Figma change is a mechanical regen).
+2. Transform to the coded token module (names/keys mirror the manifest so a Figma change is a mechanical regen).
 3. Commit; diff against the last sync. Re-run on every {{SYSTEM_NAME}} republish.
 
 `TODO:` record this project's exact export → transform command + where the token module lives.
 
-## Cross-platform rule (system-agnostic — keep)
+## Consumer-parity rule (system-agnostic — keep)
 
-Every export must exist for BOTH native and the web export. A `.native.tsx` without a matching `.web.tsx`
-(or vice-versa) dies on an undefined import — and only when the component is used, not at build. When a
-component must fork per platform, note it here.
+Every export must resolve for EVERY consumer that imports it. A fork that covers one consumer and not the
+other dies on an undefined import — and only when the component is finally used, not at build. When a
+component must fork, note the fork and its reason here.
 
 ## Parity gate (system-agnostic — keep)
 
 A component is done when: it matches its Figma source (verified by a Storybook screenshot vs the Figma
 render), every value is token-bound (no literals), states are complete + accessible (44×44, focus,
-roles/labels, reduced-motion), and it renders on native AND the web export.
+roles/labels, reduced-motion), and it renders in every consumer.
 
 ---
 
@@ -49,7 +49,7 @@ roles/labels, reduced-motion), and it renders on native AND the web export.
 **Mirrors (Figma):** `<{{SYSTEM_NAME}} component + key from {{DS_REPO}}>`
 **Props / variants:** `<...>`
 **Binds tokens:** `<synced token names>`
-**Platform:** `<shared | .native/.web fork + why>`
+**Fork:** `<shared | per-consumer fork + why>`
 **Story:** `<Storybook path>`
 
 ---
@@ -60,5 +60,5 @@ roles/labels, reduced-motion), and it renders on native AND the web export.
 > the `{{DS_REPO}}` manifest.
 
 ## Changelog
-- **v0.1**: scaffold — one-library rule, token-sync + cross-platform + parity discipline, empty catalog
+- **v0.1**: scaffold — one-library rule, token-sync + consumer-parity + parity discipline, empty catalog
   + token-map slots. Populate as components get built.

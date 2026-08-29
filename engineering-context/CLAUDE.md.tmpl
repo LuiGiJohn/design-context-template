@@ -1,24 +1,25 @@
 # CLAUDE.md — Claude Code working notes
 
-Persistent context for **{{PROJECT_NAME}} engineering** — the coded component library, the native app,
+Persistent context for **{{PROJECT_NAME}} engineering** — the coded component library, the {{APP_KIND}},
 and the release. **Read `AGENTS-HANDOFF.md`** for the full roster, pipeline, seams, and gates. This file
 adds Claude-Code-specific workflow notes + the current working state, loaded automatically on startup.
 
 ## Scope (one line)
 This context **builds shipping software**: the ONE coded implementation of {{SYSTEM_NAME}}
-(`{{COMPONENT_LIB}}` + Storybook), the native app ({{NATIVE_STACK}}, `{{APP_PACKAGE_ID}}`), and the store
+(`{{COMPONENT_LIB}}` + Storybook), the {{APP_KIND}} ({{APP_STACK}}, {{APP_ID_LABEL}} `{{APP_ID}}`), and the
 release. It CONSUMES the published Figma DS (`{{DS_REPO}}`) as coded tokens/components and the validated
 screens (`{{STUDIO_REPO}}`) as the app's spec. A Figma DS gap routes to `{{DS_REPO}}`; a flow change to
 `{{STUDIO_REPO}}`.
 
 ## Project quick-ref
+- Platform: **{{PLATFORM}}** — sets which `app-engineer` / `build-uploader` / release-runbook variant is here
 - Engineering repo (write surface): `{{ENGINEERING_REPO}}`
-- Shared component library: `{{COMPONENT_LIB}}` (RN components + coded tokens) + Storybook — consumed by
-  the prototype (Expo web export → Vercel) AND the native app
-- Native app: {{NATIVE_STACK}}, package `{{APP_PACKAGE_ID}}`, EAS project `{{EAS_PROJECT}}`
+- Shared component library: `{{COMPONENT_LIB}}` ({{COMPONENT_KIND}} + coded tokens) + Storybook — consumed
+  by {{PROTO_CONSUMER}} AND the {{APP_KIND}}
+- App: {{APP_STACK}}, {{APP_ID_LABEL}} `{{APP_ID}}`, {{RELEASE_PROJECT_LABEL}} `{{RELEASE_PROJECT}}`
 - Figma DS source (read-only reference): `{{DS_FIGMA_KEY}}` — published by `{{DS_REPO}}`
 - Fonts: {{FONTS}} — preload before first paint
-- Agents: `component-engineer` (library + Storybook), `app-engineer` (native app), `build-uploader` (release)
+- Agents: `component-engineer` (library + Storybook), `app-engineer` ({{APP_KIND}}), `build-uploader` (release)
 
 ## How to work efficiently here (hard-won lessons)
 1. **One coded library, three consumers.** Storybook, the prototype, and the app render the SAME
@@ -26,16 +27,16 @@ screens (`{{STUDIO_REPO}}`) as the app's spec. A Figma DS gap routes to `{{DS_RE
    request to `{{DS_REPO}}`. This is what keeps prototype→app rework near-zero.
 2. **Tokens are GENERATED from the Figma DS, never hand-typed.** Hand-maintained token files drift and
    resolve to silent defaults. `component-engineer` regenerates on every {{SYSTEM_NAME}} republish and diffs.
-3. **The prototype is the spec.** The usability prototype is an Expo web export of the same components, so
-   `app-engineer` wires native concerns onto a validated screen — it does not re-draw UI. Re-implementing
-   a screen's layout means something drifted; fix the library, don't rebuild.
+3. **The prototype is the spec.** The usability prototype renders the same components, so `app-engineer`
+   wires platform concerns onto a validated screen — it does not re-draw UI. Re-implementing a screen's
+   layout means something drifted; fix the library, don't rebuild.
 4. **Verify by artifact, never by a piped `| tail`.** The exit code you read is tail's — a failed build
    can report success. Redirect full output, grep it, confirm a real non-zero artifact.
-5. **Prove a check can find what you know is there before trusting an all-clear.** Binary-safe grep flags;
-   bundled strings may be UTF-16 (a UTF-8-only grep gives false negatives).
-6. **Device-verify what emulators can't prove** — auth on a store-signed build, push, background/time
-   behavior. Report what hardware proved, not what should work.
-7. **Secrets stay out of git.** Store credentials + signing keys gitignored + `chmod 600`.
+5. **Prove a check can find what you know is there before trusting an all-clear.** Plant something the
+   check SHOULD catch, confirm it catches it, then trust a clean result — never before.
+6. **{{VERIFY_GATE}}-verify what a dev loop can't prove.** {{VERIFY_GATE_DESC}}. Report what was proven,
+   not what should work.
+7. **Secrets stay out of git.** Production credentials + signing material gitignored + `chmod 600`.
 
 ## Context-window hygiene
 - Prefer fresh sessions at phase boundaries; bootstrap from `AGENTS-HANDOFF.md` rather than a long chat.
@@ -43,22 +44,21 @@ screens (`{{STUDIO_REPO}}`) as the app's spec. A Figma DS gap routes to `{{DS_RE
 - MCP minimalism: connect only what the task needs (GitHub; Figma when reading the DS export).
 
 ## Current working state — snapshot (prune as it ages)
-- **🆕 Scaffolded from template.** This context was generated from the engineering-context template.
-  Roster: `component-engineer` + `app-engineer` + `build-uploader`; commands `/component-build`,
-  `/app-build`, `/release`; skills `shared-component-library` + `release-runbook` (both scaffolds —
-  populate as you build).
+- **🆕 Scaffolded from template** (platform: `{{PLATFORM}}`). Roster: `component-engineer` +
+  `app-engineer` + `build-uploader`; commands `/component-build`, `/app-build`, `/release`; skills
+  `shared-component-library` + `release-runbook` (both scaffolds — populate as you build).
 - **Open dependency** — the coded tokens track {{SYSTEM_NAME}} **{{DS_VERSION}}**; after the DS context's
   next publish, re-sync (`/component-build sync`) and re-check parity.
 
 ## Three gates this context adds
 Beyond the studio's design-review + usability gates: **parity** (code matches Figma, zero drift, verified
-in Storybook), **device** (real-hardware verification of what emulators can't prove), **release**
-(verify-by-artifact + honest declarations + upload confirmed by re-reading the store track).
+in Storybook), **{{VERIFY_GATE}}** ({{VERIFY_GATE_DESC}}), **release** (verify-by-artifact + honest
+declarations + confirmed by re-reading {{RELEASE_CONFIRM}}).
 
 ## Maintenance
 On any component change: update its story + the shared-component-library skill, then commit + push. On a
 {{SYSTEM_NAME}} republish: re-sync coded tokens, re-check parity, re-publish `{{COMPONENT_LIB}}`, tell the
-prototype + app to bump. On a release: record version + commit + track in the release runbook.
+prototype + app to bump. On a release: record version + commit + where it landed in the release runbook.
 
 ## Slash commands (thin wrappers that delegate — never duplicate the workflow, or it drifts)
 `/component-build` (→ component-engineer) · `/app-build` (→ app-engineer) · `/release` (→ build-uploader)

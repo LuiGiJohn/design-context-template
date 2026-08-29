@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# builds / artifacts
+.next/
+out/
+build/
+dist/
+dist-ssr/
+storybook-static/
+*.tsbuildinfo
+next-env.d.ts
+
+# test / coverage
+coverage/
+playwright-report/
+test-results/
+
+# secrets — NEVER commit (a leaked production key is public the moment it deploys)
+.env
+.env.*
+!.env.example
+*service-account*.json
+credentials/
+!credentials/README.md
+
+# hosting
+.vercel
+.netlify
+
+# os / editor
+.DS_Store
+*.log

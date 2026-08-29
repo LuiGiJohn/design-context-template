@@ -1,0 +1,22 @@
+---
+description: Build production, deploy, and confirm the live URL actually serves it
+argument-hint: ["build" / "deploy" / "promote" / "rollback"]
+---
+Use the **build-uploader** subagent to run the release for $ARGUMENTS ({{RELEASE_PROJECT_LABEL}}
+`{{RELEASE_PROJECT}}`, {{APP_ID_LABEL}} `{{APP_ID}}`). Follow `skills/release-runbook.md` — build the
+exact command from the runbook, not from memory.
+
+Clear the `release_gate`: provenance (a real non-zero build output from the intended commit, with the
+expected routes — verify by artifact, never by a piped `| tail`), secrets contained (no server-only value
+in the client bundle — grep for the VALUES, not the variable names), version (immutable deployment id +
+commit recorded before promotion, so a rollback target exists), declarations honest (privacy/cookie/
+analytics/disclosure match the built app and the live pages; consent gating actually gates), and
+promotion confirmed (re-read {{RELEASE_CONFIRM}} and check for something only the new build has).
+
+Verification discipline: prove a check can find what you KNOW is there before trusting an all-clear —
+plant a known string before trusting a bundle grep, since minifiers rename identifiers and a name-based
+search goes green while the value ships. Record the rollback target BEFORE promoting. Never commit
+secrets.
+
+Deliver: the release_gate result + the artifact/live-URL verification, and report the release only after
+re-reading the live site confirms it. Defer to the agent + runbook — do not restate the hosting CLI here.
