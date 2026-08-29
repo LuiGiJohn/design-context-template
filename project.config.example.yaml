@@ -15,7 +15,12 @@ project:
 
 design_system:
   figma_source_key: "AbCdEf1234567890GhIjKl"   # sample — the 22-char key from your DS file's URL
-  library_key:      "lk-0000example0000example0000example0000example0000example0000"  # sample — real ones are ~128 hex chars
+  # Figma exposes a key per VARIABLE COLLECTION, not one library-wide key. Each is 40 hex
+  # chars. Read them with figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()
+  # from a file SUBSCRIBED to the library (the consumer file, not the source); cross-check
+  # against figma.variables.getLocalVariableCollectionsAsync() in the source — they agree.
+  # Put the collection your screens bind to here (usually the semantic one).
+  library_key:      "0000example0000example0000example00000000"  # sample — 40 hex chars
   version:          "v0.9"
   published_date:   "2026-05-21"
   fonts:            "Inter (400/500/600/700) + Source Serif 4"

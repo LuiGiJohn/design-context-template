@@ -30,7 +30,7 @@ without breaking projects already stamped from it.
 | `{{GITHUB_OWNER}}` | `project.github_owner` | repo owner |
 | `{{DS_MODE}}` | `ds_mode` | `consume` \| `build` |
 | `{{DS_FIGMA_KEY}}` | `design_system.figma_source_key` | build: "(created during setup)" |
-| `{{DS_LIBRARY_KEY}}` | `design_system.library_key` | build: "(set after first publish)" |
+| `{{DS_LIBRARY_KEY}}` | `design_system.library_key` | 40-hex variable-collection key, not a library-wide one — see below. build: "(set after first publish)" |
 | `{{DS_VERSION}}` | `design_system.version` | |
 | `{{DS_PUBLISHED_DATE}}` | `design_system.published_date` | |
 | `{{FONTS}}` | `design_system.fonts` | preload list before text ops |
@@ -68,6 +68,29 @@ both platforms):
 | `{{DEPLOY_UNIT}}` | signed artifact | immutable deployment |
 | `{{RELEASE_CONFIRM}}` | the store track | the live production URL |
 | `{{PLATFORM_TARGETS}}` | iOS + Android | the supported browser matrix |
+
+### Finding the DS library key
+
+Figma has **no single library-wide key**. It exposes one 40-hex key per *variable collection*, so a
+DS with Primitives / Tokens / Semantic / Mood collections has four. Put the collection your screens
+actually bind to (usually the semantic one) in `library_key`, and record the rest alongside it if the
+project needs them.
+
+Read them from a file **subscribed to** the library — the consumer file, not the source:
+
+```js
+const cols = await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
+return cols.map(c => ({ library: c.libraryName, collection: c.name, key: c.key }));
+```
+
+Cross-check against the source file, where the same keys appear as local collections:
+
+```js
+const cols = await figma.variables.getLocalVariableCollectionsAsync();
+return cols.map(c => ({ name: c.name, key: c.key, modes: c.modes.map(m => m.name) }));
+```
+
+If the two disagree, the library has unpublished changes — publish before trusting either.
 
 ## The org layer
 
