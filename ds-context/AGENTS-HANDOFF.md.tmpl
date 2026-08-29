@@ -24,17 +24,17 @@ The screen-creation roster (`product-designer`, `ui-designer`, `art-director`, `
 ## The organizing principle — ownership, not job titles
 
 Three design roles in this context, each owning a distinct **write-surface** and **object type**, so
-they never collide — plus a `publisher` **executor** that owns only the publish click.
+they never collide — plus a `ds-publisher` **executor** that owns only the publish click.
 
 | Role | Write surface | Owns (object type) |
 |---|---|---|
 | `ds-steward` | {{SYSTEM_NAME}} SOURCE **variables + styles** + the context repo | tokens / token architecture · governance · the binding-audit GATE · the publish DECISION · drift · manifest · docs of record |
 | `component-designer` | {{SYSTEM_NAME}} SOURCE **component / component_set nodes** | component construction · variants · states · layout · visual craft · binding to tokens |
 | `brand-designer` | IDENTITY + expressive assets (illustration / photo / video / marketing) | how the brand looks and feels (DIRECTION) |
-| `publisher` | the Figma-desktop **Publish** modal (computer-use) | EXECUTING the publish click — pre-flight + confirm-before-click; owns no design surface |
+| `ds-publisher` | the Figma-desktop **Publish** modal (computer-use) | EXECUTING the publish click — pre-flight + confirm-before-click; owns no design surface |
 
 **Mental model:** Brand decides identity → `ds-steward` encodes it as semantic tokens →
-`component-designer` builds + binds the components → `ds-steward` audits + clears → `publisher`
+`component-designer` builds + binds the components → `ds-steward` audits + clears → `ds-publisher`
 executes the publish click → `ds-steward` flips `republished` + verifies →
 (handoff) the separate screen-creation context applies it.
 
@@ -47,7 +47,7 @@ executes the publish click → `ds-steward` flips `republished` + verifies →
 | `ds-steward` | variables/styles authoring, token architecture, governance, the binding-audit GATE, publish hygiene, drift, manifest, skills/docs of record, spiels mechanism, lookup | "add a token/style", "audit bindings", "publish", "check drift", "update the skills", "what's the token/key for X?" |
 | `component-designer` | component / component_set construction, variants, states, layout, visual craft, binding to tokens, a11y-at-build | "build/modify the X component", "add a variant", "fix the states/layout", "expose this slot" |
 | `brand-designer` | identity direction, illustration style, imagery, photography system, video automation, marketing creative | "brand direction", "illustration style", "grade these photos", "set up the render" |
-| `publisher` | EXECUTES the Figma-desktop "Publish library changes" click via computer-use — pre-flights pending changes, confirms the change list, drives the click, hands back to `ds-steward` | "publish", "push the library", "/publish" |
+| `ds-publisher` | EXECUTES the Figma-desktop "Publish library changes" click via computer-use — pre-flights pending changes, confirms the change list, drives the click, hands back to `ds-steward` | "publish", "push the library", "/publish" |
 
 **Quality gate (the build→audit seam)** — `component-designer` builds + binds and runs its
 **visual_lens** + a self-audit; then `ds-steward` **independently** runs the **system-design lens**
@@ -66,7 +66,7 @@ away. Evidence-based, severity-ranked; nothing publishes with open blockers or u
 | "Add a token/style" · "add a semantic/alias" · "fix a binding's token" | `ds-steward` |
 | "Build / modify the X component" · "add a variant" · "fix states/layout" · "expose a slot" | `component-designer` (→ `ds-steward` audits + clears) |
 | "Audit bindings" · "are we clean before publish?" | `ds-steward` (`/binding-audit`) |
-| "Publish" · "push the library" | `ds-steward` clears → `publisher` executes (`/publish`) |
+| "Publish" · "push the library" | `ds-steward` clears → `ds-publisher` executes (`/publish`) |
 | "Check drift" · "update the skills" · "commit the context" | `ds-steward` (`/drift-check`) |
 | "Add translations" · "localize" · "set up i18n" | `ds-steward` (spiels MECHANISM; string content comes from the screen-creation context) |
 | "What's the binding/key/spec for X?" | `ds-steward` (lookup) |
@@ -160,7 +160,7 @@ elements before publish. `clone()` does not carry bindings — re-bind after clo
 | `/design-system-check [target]` | `ds-steward` | run the system-design lens |
 | `/binding-audit [component]` | `ds-steward` | binding-completeness gate |
 | `/drift-check [actual.json]` | `ds-steward` | manifest vs actual drift |
-| `/publish` | `publisher` | drive the Figma-desktop publish click (pre-flight + confirm-before-click) |
+| `/publish` | `ds-publisher` | drive the Figma-desktop publish click (pre-flight + confirm-before-click) |
 
 Each command body only *invokes the agent* — the workflow lives in **one** place. The catch: if a
 command restates the audit logic, the same workflow now exists in two places (command + agent) and
@@ -186,7 +186,7 @@ screen-building or coded-prototype tooling into the design-system window:
   `consumer-migrator` procedure to swap stale consumer instances onto the fresh main + confirm the
   change is actually used downstream.
 
-**Handoff across the boundary:** `ds-steward` clears the publish (the `publisher` agent executes the
+**Handoff across the boundary:** `ds-steward` clears the publish (the `ds-publisher` agent executes the
 click) + updates `skills/` + `manifest/`; the screen-creation context consumes the published library
 to build. A {{SYSTEM_NAME}} gap found while building a screen comes back here as a tokenization/component
 request — `ds-steward` + `component-designer` build it and it ships on the next publish, the screen
@@ -198,7 +198,7 @@ context waits or stubs. `DESIGN.md` is shared ground truth that both read.
 
 `CLAUDE.md` / `CONTEXT.md` still boot the session with project facts, file keys, version, and
 preferences. `DESIGN.md` is the design-principles source the agents read. These three design agents
-(`ds-steward`, `component-designer`, `brand-designer`) — plus the `publisher` executor — are the
+(`ds-steward`, `component-designer`, `brand-designer`) — plus the `ds-publisher` executor — are the
 specialists this context delegates to after boot. The canonical workflows live **inside the agents** (Claude Code only) — there
 are no separate `kickoff-prompts/*.md` to keep in sync; the agents read `skills/*.md` + `DESIGN.md` +
 the manifest for the detail.

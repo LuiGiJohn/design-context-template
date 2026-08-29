@@ -29,11 +29,12 @@ const CFG = (() => { const i = args.indexOf('--config'); return i >= 0 ? args[i 
 // Validation follows: a context you aren't rendering can't block you on its fields.
 const ONLY = (() => {
   const i = args.indexOf('--only');
-  if (i < 0) return ['ds', 'studio', 'engineering'];
+  if (i < 0) return ['ds', 'studio', 'engineering', 'growth'];
   const picked = (args[i + 1] || '').split(',').map((s) => s.trim()).filter(Boolean);
-  const bad = picked.filter((s) => !['ds', 'studio', 'engineering'].includes(s));
-  if (bad.length) { console.error(`✗ --only: unknown context(s) ${bad.join(', ')}. Use ds, studio, engineering.`); process.exit(1); }
-  if (!picked.length) { console.error('✗ --only needs at least one of: ds, studio, engineering'); process.exit(1); }
+  const KNOWN = ['ds', 'studio', 'engineering', 'growth'];
+  const bad = picked.filter((s) => !KNOWN.includes(s));
+  if (bad.length) { console.error(`✗ --only: unknown context(s) ${bad.join(', ')}. Use ${KNOWN.join(', ')}.`); process.exit(1); }
+  if (!picked.length) { console.error(`✗ --only needs at least one of: ${KNOWN.join(', ')}`); process.exit(1); }
   return picked;
 })();
 
@@ -54,12 +55,16 @@ const e = cfg.engineering || {};
 // ── platform switch (web | native) ───────────────────────────────────────────
 // The code arm ships in two flavours. Files whose *structure* is shared live in
 // engineering-context/ and vary only through the placeholders below; the handful
-// whose content genuinely diverges (app-engineer, build-uploader, their commands,
+// whose content genuinely diverges (developer, release-engineer, their commands,
 // the release runbook, .gitignore) live in engineering-context/_platform/<platform>/
 // and are overlaid on top of the base at render time.
 //
 // Defaults to `native` so projects stamped before this switch existed (which have
 // no engineering.platform) render exactly as they did.
+// Which org groups this project staffs. Roles whose `group:` is not enabled don't render at all —
+// that is how one template serves a design-only engagement and a full company without forking.
+const ORG_GROUPS = (cfg.org?.groups) || ['design-system','leadership','studio','app-builder','app-publisher','marketing','operations'];
+
 const PLATFORM = e.platform || 'native';
 const PLATFORM_DEFAULTS = {
   native: {
@@ -76,6 +81,9 @@ const PLATFORM_DEFAULTS = {
     PROTO_CONSUMER: 'the usability prototype (Expo web export → Vercel)',
     DEPLOY_UNIT: 'signed artifact',
     RELEASE_CONFIRM: 'the store track',
+    PLATFORM_TARGETS: 'iOS + Android',
+    DS_PARITY_CMD: 'npm run tokens:sync -- --check && npm run storybook:test',
+    BUILD_CHECK_CMD: 'npm run typecheck && npm run lint && npm test && npm run check:release',
   },
   web: {
     APP_KIND: 'web app',
@@ -91,6 +99,9 @@ const PLATFORM_DEFAULTS = {
     PROTO_CONSUMER: 'the usability prototype',
     DEPLOY_UNIT: 'immutable deployment',
     RELEASE_CONFIRM: 'the live production URL',
+    PLATFORM_TARGETS: 'the supported browser matrix',
+    DS_PARITY_CMD: 'npm run tokens:sync -- --check && npm run storybook:test',
+    BUILD_CHECK_CMD: 'npm run typecheck && npm run lint && npm test && npm run build',
   },
 }[PLATFORM] ?? {};
 
@@ -133,6 +144,10 @@ const MAP = {
   PROTO_CONSUMER: PLATFORM_DEFAULTS.PROTO_CONSUMER,
   DEPLOY_UNIT: PLATFORM_DEFAULTS.DEPLOY_UNIT,
   RELEASE_CONFIRM: PLATFORM_DEFAULTS.RELEASE_CONFIRM,
+  PLATFORM_TARGETS: PLATFORM_DEFAULTS.PLATFORM_TARGETS,
+  DS_PARITY_CMD: e.ds_parity_cmd || PLATFORM_DEFAULTS.DS_PARITY_CMD,
+  BUILD_CHECK_CMD: e.build_check_cmd || PLATFORM_DEFAULTS.BUILD_CHECK_CMD,
+  GROWTH_REPO: r.growth_context || '',
   // Deprecated aliases — kept so pre-switch .tmpl files still resolve.
   NATIVE_STACK: APP_STACK, APP_PACKAGE_ID: APP_ID, EAS_PROJECT: RELEASE_PROJECT,
   USER_METHODOLOGY: u.methodology, USER_COMMUNICATION: u.communication, USER_CODE_STYLE: u.code_style,
@@ -152,6 +167,9 @@ if (ONLY.includes('ds') && cfg.ds_mode === 'consume') {
 if (ONLY.includes('engineering') && r.engineering_context && !['web', 'native'].includes(PLATFORM)) {
   missing.push(`engineering.platform must be "web" or "native" (got "${PLATFORM}")`);
 }
+if (ONLY.includes('growth') && !r.growth_context && (cfg.org?.groups || []).some((g) => ['marketing', 'operations'].includes(g))) {
+  missing.push('repos.growth_context (required when the marketing or operations groups are enabled)');
+}
 if (missing.length) { console.error('✗ Missing required config:\n  - ' + missing.join('\n  - ')); process.exit(1); }
 
 const subst = (s) => s.replace(/\{\{(\w+)\}\}/g, (m, k) => (k in MAP ? String(MAP[k]) : m));
@@ -165,6 +183,15 @@ function renderTree(srcDir, dstDir) {
     // `_platform` holds the per-platform overlays; it is never rendered as part of
     // the base walk — renderTree is called on the chosen variant explicitly below.
     if (['node_modules', '.git', 'dist', '.vercel', '_platform'].includes(name)) continue;
+    // A role charter declares its `group:`; skip it when that group isn't staffed.
+    // Uses srcDir (the directory being walked) — `src` below is not yet initialized here.
+    if (name.endsWith('.md.tmpl') && srcDir.includes('agents')) {
+      // Parse the WHOLE frontmatter block, not a fixed-size slice — a long `description:`
+      // pushes `group:` past any byte cutoff and truncates the value mid-word.
+      const fm = readFileSync(join(srcDir, name), 'utf8').match(/^---\r?\n([\s\S]*?)\r?\n---/);
+      const g = fm && fm[1].match(/^group:\s*(.+)$/m);
+      if (g && !ORG_GROUPS.includes(g[1].trim())) { console.log(`  – ${name.replace(/\.tmpl$/, '')} (group ${g[1].trim()} not staffed)`); continue; }
+    }
     const src = join(srcDir, name);
     if (statSync(src).isDirectory()) { renderTree(src, join(dstDir, name)); continue; }
     const isTmpl = name.endsWith('.tmpl');
@@ -199,4 +226,21 @@ if (ONLY.includes('engineering') && r.engineering_context) {
   renderTree(overlay, dst);
 }
 
+// The growth context (marketing + operations) is OPTIONAL — rendered only when repos.growth_context
+// is set. A design-only or pre-launch project omits it; it becomes relevant the moment there is
+// something shipped to market and support.
+if (ONLY.includes('growth') && r.growth_context) {
+  console.log(`→ ${r.growth_context}`);
+  renderTree(join(ROOT, 'growth-context'), join(OUT, r.growth_context));
+}
+
+// company/ is ORG-level, not per-repo: the org chart, the gates, the handoff contracts and the
+// single-writer checker. It renders once, ALONGSIDE the repos rather than inside any one of them,
+// because a contract owned by one party to it is not a contract.
+if (existsSync(join(ROOT, 'company'))) {
+  console.log('→ company/ (org chart · gates · handoffs)');
+  renderTree(join(ROOT, 'company'), join(OUT, 'company'));
+}
+
 console.log('Done. Next: git init each repo; populate DS skill mirrors; open in Claude Code.');
+console.log('Verify the org: node company/check-org.mjs');

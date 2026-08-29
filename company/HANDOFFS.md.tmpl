@@ -1,0 +1,95 @@
+# {{PROJECT_NAME}} — Handoff Contracts
+
+A handoff is the artifact that crosses a group boundary. Naming it removes the most common failure in
+a multi-agent org: the receiving role re-derives what the sending role already knew, and the two
+answers differ.
+
+Each contract below is **what is passed**, not a description of the work. If the artifact is missing a
+field, the receiver rejects the handoff rather than guessing.
+
+---
+
+## Studio → Design System · *gap request*
+Raised when a screen needs something the DS does not have.
+
+```yaml
+gap:      component | token | variant | mode
+need:     what the screen requires, in DS vocabulary
+evidence: the screen + the state that needs it
+blocking: which story is stalled
+proposal: a suggested shape — a suggestion, not a decision
+```
+**Never** a code- or Figma-side local invention. A local fix is a second source of truth, and it will
+diverge silently.
+
+## Design System → Engineering · *published version*
+```yaml
+version:     the published library version
+changes:     added / changed / deprecated
+migration:   what consumers must do, per breaking change
+tokens:      new or renamed, with old → new
+verified_by: G1 parity result
+```
+
+## Studio → App Builder · *validated screen spec*
+```yaml
+screen:              name + the flow it belongs to
+acceptance_criteria: observable, per state
+states:              default · loading · empty · error · success
+offline:             the offline path
+copy:                string keys — approved, G4 signed
+components:          which DS components compose it
+motion:              per interaction — trigger · what moves · duration+easing TOKEN ·
+                     interrupt behavior · reduced-motion alternative
+verified_by:         G0
+```
+The prototype is the spec. `developer` ports **native concerns, not pixels** — re-drawing a validated
+layout re-opens decisions that were already settled with evidence.
+
+## App Builder → App Publisher · *release candidate*
+```yaml
+commit:          the exact SHA
+changes:         the change list, per platform
+device_checks:   what was verified on real hardware, and on what
+regression:      baseline diff result
+known_issues:    what is shipping unfixed, and why
+verified_by:     G2 + G3
+```
+
+## App Publisher → Marketing · *shipped build*
+```yaml
+version:   the shipped version + track
+live_at:   when it reached users
+changes:   user-observable changes only — internal work is not a marketing input
+assets:    store screenshot frames available
+```
+
+## Marketing → App Publisher · *listing update*
+```yaml
+fields:      title · subtitle · keywords · description
+copy:        the text, per locale — G4 signed
+assets:      screenshots, preview video
+char_counts: counted BEFORE the call, per field limit
+```
+`marketing-lead` authors, `store-manager` publishes, and **confirms by re-reading the store** rather
+than trusting the write's response.
+
+## Operations → Leadership · *cycle read*
+```yaml
+crash_free:  rate, from the live console
+reviews:     triaged themes + volume
+funnel:      activation / retention movement
+costs:       spend against budget
+asks:        what needs a decision
+verified_by: G7
+```
+
+---
+
+## The rule that makes handoffs cheap
+
+> The sending role states what it **verified**, not what it **believes**. The receiving role trusts
+> verified claims and re-checks nothing else.
+
+Without this, every boundary duplicates the work on both sides — and when the two results disagree,
+nobody knows which to believe.

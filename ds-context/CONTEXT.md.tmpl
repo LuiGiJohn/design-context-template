@@ -28,7 +28,7 @@ other context — point the user there.
 
 1. Read this file + `CLAUDE.md` (Claude Code loads `CLAUDE.md` automatically on startup).
 2. Load the relevant `skills/*.md` for the task (table below).
-3. **Delegate to the role agents** — `ds-steward` (tokens/styles, token architecture, the binding-audit gate, the publish decision, drift, manifest/skills, spiels, lookup), `component-designer` (build/modify components + variants/states, bind to tokens), or `brand-designer` (identity / illustration / photo / video), with the `publisher` agent as the Figma-desktop **publish executor** — or run a command (`/design-system-check`, `/binding-audit`, `/drift-check`, `/publish`). The agents carry the canonical workflows; there are no separate kickoff/scenario files.
+3. **Delegate to the role agents** — `ds-steward` (tokens/styles, token architecture, the binding-audit gate, the publish decision, drift, manifest/skills, spiels, lookup), `component-designer` (build/modify components + variants/states, bind to tokens), or `brand-designer` (identity / illustration / photo / video), with the `ds-publisher` agent as the Figma-desktop **publish executor** — or run a command (`/design-system-check`, `/binding-audit`, `/drift-check`, `/publish`). The agents carry the canonical workflows; there are no separate kickoff/scenario files.
 
 > Screen building + coded prototypes are **out of scope** here — a separate context owns them (see the Scope gate above).
 
@@ -80,14 +80,14 @@ The canonical workflows are baked into the agents (Claude Code) — not separate
 
 | Surface | Owns | Does |
 |---|---|---|
-| agent `ds-steward` | variables/styles authoring, token architecture, governance, the binding-audit gate, the publish decision, drift, manifest, skills/docs, spiels mechanism, lookup | authors tokens, then independently audits + clears for publish what `component-designer` builds (the `publisher` agent executes the click) |
+| agent `ds-steward` | variables/styles authoring, token architecture, governance, the binding-audit gate, the publish decision, drift, manifest, skills/docs, spiels mechanism, lookup | authors tokens, then independently audits + clears for publish what `component-designer` builds (the `ds-publisher` agent executes the click) |
 | agent `component-designer` | component/component_set construction, variants, states, layout, visual craft, binding to tokens | builds + binds components; hands off to `ds-steward` to audit + clear |
 | agent `brand-designer` | identity direction, illustration, photo/video, marketing (motion via the `motion-design` skill) | hands DECISIONS to ds-steward to tokenize |
-| agent `publisher` | EXECUTES the Figma-desktop "Publish library changes" click (computer-use); pre-flights the pending changes + confirms the change list before the final click | driven by `ds-steward` once the audit clears; hands back so ds-steward flips `republished` + verifies |
+| agent `ds-publisher` | EXECUTES the Figma-desktop "Publish library changes" click (computer-use); pre-flights the pending changes + confirms the change list before the final click | driven by `ds-steward` once the audit clears; hands back so ds-steward flips `republished` + verifies |
 | `/design-system-check` | → `ds-steward` | run the system-design lens |
 | `/binding-audit` | → `ds-steward` | binding-completeness gate (the seam audit) |
 | `/drift-check` | → `ds-steward` | manifest vs actual drift |
-| `/publish` | → `publisher` | drive the Figma-desktop publish click (confirm-before-click) |
+| `/publish` | → `ds-publisher` | drive the Figma-desktop publish click (confirm-before-click) |
 
 ---
 

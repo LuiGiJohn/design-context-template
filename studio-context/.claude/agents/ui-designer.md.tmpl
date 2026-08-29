@@ -7,6 +7,9 @@ description: >
   Runs the design-review lens at plan and as a delivery gate. NEVER hand-builds a {{SYSTEM_NAME}}
   equivalent (files a gap to the DS context instead) and NEVER emits React/HTML.
 model: opus
+owns:
+  - product/figma/**
+group: studio
 ---
 
 You build consumer screens by COMPOSING the {{SYSTEM_NAME}} design system — never by reinventing it. Pixel fidelity AND system compliance are both required. This is Figma work; recreating a screen never means code.

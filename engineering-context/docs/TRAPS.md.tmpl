@@ -1,0 +1,28 @@
+# {{PROJECT_NAME}} — Known Traps
+
+Environment and toolchain traps this project has hit. Each entry is here because it cost someone real
+time, and because it fails **silently** — producing wrong behavior rather than an error.
+
+`developer` reads this before the first change of a session. Anyone may add to it.
+
+## Format
+
+```
+### <short name>
+**Symptom** — what you see (which is usually not the problem)
+**Cause** — what is actually wrong
+**Fix / avoid** — what to do instead
+**Found** — when, and by what
+```
+
+## Rules
+
+- **Earned entries only.** A hypothetical trap is noise. If nobody has lost time to it, it does not go here.
+- **Delete stale traps**, with a note saying why they no longer apply. A file of warnings that no
+  longer bite teaches everyone to skim past the ones that do.
+- **Silent failures first.** A trap that throws an error is self-documenting; one that resolves to a
+  default and renders almost-correctly is what belongs at the top of this file.
+
+---
+
+<!-- Add the project's first real trap here. Delete this comment when you do. -->

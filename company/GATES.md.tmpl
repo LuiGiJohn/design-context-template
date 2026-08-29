@@ -1,0 +1,112 @@
+# {{PROJECT_NAME}} — Gates
+
+A gate is a **checkable condition between two groups**. Prose lenses inside an agent charter get
+rationalized past by the agent running them; a gate that shells out to a command cannot be talked out
+of its exit code.
+
+Each gate below names its owner, what it blocks, and — where possible — the command that decides it.
+`auto` gates are machine-checkable and belong in a workflow phase. `judged` gates need a role to look
+and say so; they still produce a written verdict, never a silent pass.
+
+| # | Gate | Owner | Blocks | Kind |
+|---|---|---|---|---|
+| G0 | Spec ready | `ux-designer` | build starting | judged |
+| G1 | DS parity | `design-system-engineer` | component handoff | auto |
+| G2 | Build health | `developer` | QA starting | auto |
+| G3 | Verified | `qa-engineer` | publish starting | judged + auto |
+| G4 | Language | `ux-writer` | any user-facing string shipping | judged |
+| G5 | Compliance | `compliance-officer` | store submission | judged |
+| G6 | Release | `release-engineer` | the release being called done | auto |
+| G7 | Post-launch | `support-lead` | the next cycle planning | auto |
+
+---
+
+## G0 · Spec ready → blocks build
+**Owner** `ux-designer`. A story enters build only with acceptance criteria that name observable
+behavior, every state (default/loading/empty/error/success), the offline path, **and the motion +
+interaction section from `motion-designer`**.
+
+> A criterion you cannot observe on a device is not a criterion — it is a wish.
+
+🔴 **Motion is part of the gate, not a follow-up request.** A spec with no motion section is
+incomplete and is rejected here, exactly like a missing error state. This exists so that nobody has to
+remember to ask for animation on each feature — the gate asks, every time. "No motion here" is a valid
+answer from `motion-designer`; silence is not.
+
+## G1 · DS parity → blocks component handoff
+**Owner** `design-system-engineer`. Auto:
+
+```
+{{DS_PARITY_CMD}}
+```
+
+Passes only at **zero unbound values** and **zero Figma drift**. A missing token or component is a gap
+routed to `ds-steward` — never a code-side invention, which is how two sources of truth are born.
+
+## G2 · Build health → blocks QA
+**Owner** `developer`. Auto: typecheck, lint, unit tests, and the project's release precheck must all
+exit 0 *before* QA is asked to look at anything.
+
+```
+{{BUILD_CHECK_CMD}}
+```
+
+## G3 · Verified → blocks publish
+**Owner** `qa-engineer`. Two halves:
+- **auto** — the regression baseline diffs clean (see `company/REGRESSION.md`).
+- **judged** — every acceptance criterion confirmed on {{PLATFORM_TARGETS}}, on real hardware for
+  anything hardware alone can prove.
+
+A defect found here goes back to `developer`. QA never fixes what it finds — a tester who patches
+their own finding has destroyed the evidence that it existed.
+
+## G4 · Language → blocks every user-facing string
+**Owner** `ux-writer`. Applies to in-app copy, store listings, video captions, and social posts alike.
+
+> 🔴 No role outside `ux-writer` may author or alter a localized string. Not for a caption, not for a
+> hook, not "just this once because it scans better."
+
+Localized copy that bypasses review ships looking exactly as authoritative as copy that went through
+it. The failure mode is silent: a fluent-looking word that means something wrong, or nothing at all,
+to a native speaker. This gate exists because that has already happened in a real project — the
+review history is why it is a gate and not a guideline.
+
+Marketing multiplies the exposure: captions, listings and social copy are all user-facing strings, and
+they are produced fastest, furthest from the people who check them. **`creative-director` and
+`motion-editor` are consumers of approved strings, never authors of new ones.**
+
+## G5 · Compliance → blocks store submission
+**Owner** `compliance-officer`. The data-safety / App Privacy declarations must match the **built
+binary**, not the intended design — every SDK that collects, every permission requested, every
+identifier. Plus: policy category fit, and the live listing's claims.
+
+A rejection here is cheap. A rejection after submission costs a review cycle; a *wrong declaration
+that passes* is worse than either.
+
+## G6 · Release → blocks calling it shipped
+**Owner** `release-engineer`. Auto, and every clause is verified by artifact:
+
+1. **Provenance** — a real, non-zero artifact from the intended commit. Verify the artifact itself.
+2. **Signing** — correct upload/signing cert; store re-signing accounted for.
+3. **Version** — monotonic and authoritative.
+4. **Confirmed** — re-read the **{{RELEASE_CONFIRM}}**, never the submit response.
+
+> **Positive control.** Before trusting an all-clear, prove the check can find something you *know* is
+> there. A grep that finds nothing and a grep that is broken produce identical output.
+
+Binary-safe grep flags; bundled strings may be UTF-16. Never commit secrets.
+
+## G7 · Post-launch → blocks next-cycle planning
+**Owner** `support-lead`. Crash-free rate read from the live console, store reviews triaged, and every
+recurring complaint filed as a backlog item before the next cycle is scoped. Shipping without reading
+back is how a team plans its second release on assumptions from before the first.
+
+---
+
+## Why gates and not lenses
+
+The charters describe lenses — `parity_lens`, `engineering_lens`, `release_gate`. Those stay: they are
+how a role thinks. Gates are different — they are how a **group boundary** is enforced, they live
+outside the agent that must pass them, and they produce evidence rather than a verdict.
+
+An agent can convince itself it ran its lens. It cannot convince a gate that a command exited 0.

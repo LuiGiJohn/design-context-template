@@ -2,10 +2,10 @@
 description: Compose the shared component library into a validated screen + wire the web app around it
 argument-hint: [screen / route / flow]
 ---
-Use the **app-engineer** subagent to build $ARGUMENTS in the {{APP_KIND}} ({{APP_STACK}},
+Use the **developer** subagent to build $ARGUMENTS in the {{APP_KIND}} ({{APP_STACK}},
 {{APP_ID_LABEL}} `{{APP_ID}}`). Consume the VALIDATED screen spec + acceptance criteria from
 `{{STUDIO_REPO}}` and COMPOSE `{{COMPONENT_LIB}}` — do not re-implement a component (a gap →
-`component-engineer`) or re-draw a validated layout (the prototype is the spec; port the wiring, not the
+`design-system-engineer`) or re-draw a validated layout (the prototype is the spec; port the wiring, not the
 pixels).
 
 Run the `engineering_lens`: parity to the validated flow, state + data correctness (loading/empty/error/
@@ -16,5 +16,5 @@ performance (honest payloads, sized/lazy images, fonts preloaded with `display: 
 browser-verification against a PRODUCTION build of what `dev` can't prove.
 
 Deliver: the engineering_lens result + the browser-check status, and hand a verified build target to
-`build-uploader` with the commit + what changed + what checks remain. Defer to the agent — do not restate
+`release-engineer` with the commit + what changed + what checks remain. Defer to the agent — do not restate
 the component API here.

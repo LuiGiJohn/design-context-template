@@ -43,6 +43,9 @@ without breaking projects already stamped from it.
 | `{{PROTOTYPE_DESC}}` | `prototype.description` | |
 | `{{DS_REPO}}` / `{{STUDIO_REPO}}` | `repos.*` | rendered repo names |
 | `{{ENGINEERING_REPO}}` | `repos.engineering_context` | code repo; **omit the field → no engineering context rendered** |
+| `{{GROWTH_REPO}}` | `repos.growth_context` | marketing + operations repo; **omit → no growth context rendered** |
+| `{{DS_PARITY_CMD}}` | `engineering.ds_parity_cmd` | what gate G1 runs; defaults per platform |
+| `{{BUILD_CHECK_CMD}}` | `engineering.build_check_cmd` | what gate G2 runs; defaults per platform |
 | `{{COMPONENT_LIB}}` | `engineering.component_lib` | shared component package (default `ui`) |
 | `{{PLATFORM}}` | `engineering.platform` | `web` \| `native` (default `native`) — picks the code arm's overlay |
 | `{{APP_STACK}}` | `engineering.app_stack` | e.g. "Expo SDK 57 / React Native 0.86", "Next.js 16 / React 19" |
@@ -64,6 +67,39 @@ both platforms):
 | `{{PROTO_CONSUMER}}` | the usability prototype (Expo web export → Vercel) | the usability prototype |
 | `{{DEPLOY_UNIT}}` | signed artifact | immutable deployment |
 | `{{RELEASE_CONFIRM}}` | the store track | the live production URL |
+| `{{PLATFORM_TARGETS}}` | iOS + Android | the supported browser matrix |
+
+## The org layer
+
+Two things render outside the per-repo trees:
+
+- **`growth-context/`** → `{{GROWTH_REPO}}`, the marketing + operations roles. Optional in the same
+  way the engineering context is: omit `repos.growth_context` and it does not render.
+- **`company/`** → renders once, **alongside** the repos rather than inside any of them: the org
+  chart, the eight gates, the handoff contracts, `check-org.mjs`, and `link-agents.sh`. A contract
+  owned by one party to it is not a contract.
+
+### Staffing groups per project
+
+`org.groups` in the config decides which of the seven groups a project staffs. Every role charter
+declares its `group:` in frontmatter; the renderer skips any charter whose group is not listed, and
+logs each skip.
+
+```yaml
+org:
+  groups: [design-system, studio]      # a design-only engagement
+```
+
+Valid groups: `design-system` · `leadership` · `studio` · `app-builder` · `app-publisher` ·
+`marketing` · `operations`. Omit `org.groups` entirely and all seven staff.
+
+**When adding a role**, give it both `group:` and `owns:` frontmatter. `owns:` is a list of path
+globs, and `company/check-org.mjs` fails the build if two roles declare overlapping surfaces — that
+is the single-writer invariant, and it is checkable rather than aspirational.
+
+⚠️ Parse the whole frontmatter block when reading these fields, not a fixed-size slice. A long
+`description:` pushes `group:` past any byte cutoff and truncates the value mid-word, which fails as
+a silent mis-skip rather than an error.
 
 **Overriding a derived value.** The table is the common case, not a straitjacket — set the
 lower_snake_case key under `engineering:` to override any row. A native project that builds locally in
@@ -99,13 +135,13 @@ engineering-context/
 ├── AGENTS-HANDOFF.md.tmpl          ← shared (placeholders do the platform work)
 ├── CLAUDE.md.tmpl                  ← shared
 ├── README.md.tmpl                  ← shared
-├── .claude/agents/component-engineer.md.tmpl   ← shared
+├── .claude/agents/design-system-engineer.md.tmpl   ← shared
 ├── .claude/commands/component-build.md.tmpl    ← shared
 ├── skills/shared-component-library.md.tmpl     ← shared
 └── _platform/
-    ├── native/   app-engineer (Expo/RN) · build-uploader (EAS + store) · app-build · release ·
+    ├── native/   developer (Expo/RN) · release-engineer (EAS + store) · app-build · release ·
     │             release-runbook · .gitignore
-    └── web/      app-engineer (Next.js) · build-uploader (host deploy) · app-build · release ·
+    └── web/      developer (Next.js) · release-engineer (host deploy) · app-build · release ·
                   release-runbook · .gitignore
 ```
 
@@ -163,7 +199,7 @@ context's own `CONTEXT.md` / `CLAUDE.md` / `AGENTS-HANDOFF.md` (rendered from `.
 operating manual.
 
 **Prototype↔app alignment (the reason the engineering context pays off):** the studio's usability
-prototype renders the **same `{{COMPONENT_LIB}}` components the app ships** — `component-engineer` builds
+prototype renders the **same `{{COMPONENT_LIB}}` components the app ships** — `design-system-engineer` builds
 the library once, and both the prototype and the app consume it. What you usability-test is what you
 ship, so prototype→app rework is near-zero. On `platform: native` that means an Expo web export of the
 RN components; on `platform: web` the prototype and the app are both web, so it needs no export step at
