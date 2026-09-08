@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# link-agents.sh — rebuild the workspace-root agent registry.
+#
+# Claude Code loads agents from `.claude/agents` in the directory it starts in. The org's roles live
+# across several repos, so a session started at the workspace root sees none of them without this.
+#
+# Symlinks, not copies: each repo's file stays the single source of truth, and editing a charter in
+# its home repo is picked up here with nothing to drift.
+#
+# ⚠️ If a context repo lives OUTSIDE this workspace, point its entry at the real path — e.g.
+#    "$HOME/Desktop/{{ENGINEERING_REPO}}/.claude/agents"
+#
+# Run from the workspace root:  bash company/link-agents.sh
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+SOURCES=(
+  "$ROOT/{{DS_REPO}}/.claude/agents"
+  "$ROOT/{{STUDIO_REPO}}/.claude/agents"
+  "$ROOT/{{ENGINEERING_REPO}}/.claude/agents"
+  "$ROOT/{{GROWTH_REPO}}/.claude/agents"
+)
+
+mkdir -p .claude/agents
+rm -f .claude/agents/*.md
+
+linked=0
+declare -a collisions=()
+REGISTRY="$ROOT/.claude/agents"
+for dir in "${SOURCES[@]}"; do
+  # An unstaffed group renders an EMPTY repo name, collapsing "$ROOT/{{X}}/.claude/agents"
+  # into "$ROOT//.claude/agents" — i.e. the registry itself. Left unguarded that relinks every
+  # symlink to itself and reports the whole roster as broken duplicates.
+  case "$dir" in *//*) continue ;; esac
+  [ "$dir" = "$REGISTRY" ] && continue
+  [ -d "$dir" ] || { echo "  skip (missing): $dir" >&2; continue; }
+  for f in "$dir"/*.md; do
+    [ -e "$f" ] || continue
+    name="$(basename "$f")"
+    # A later source overwriting an earlier one means two repos define the same role — report it.
+    [ -L ".claude/agents/$name" ] && collisions+=("$name")
+    ln -sfn "$f" ".claude/agents/$name"
+    linked=$((linked + 1))
+  done
+done
+
+echo "linked $linked charter(s) -> .claude/agents/"
+
+broken=0
+for l in .claude/agents/*.md; do
+  [ -e "$l" ] || { echo "  BROKEN: $l" >&2; broken=$((broken + 1)); }
+done
+
+if [ ${#collisions[@]} -gt 0 ]; then
+  echo "  ⚠ duplicate role name(s) across repos: ${collisions[*]}" >&2
+  echo "    The last source wins. Retire the stale copy." >&2
+fi
+
+[ "$broken" -eq 0 ] || { echo "  $broken broken link(s)" >&2; exit 1; }
+echo "all links resolve"
