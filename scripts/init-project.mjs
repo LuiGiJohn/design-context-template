@@ -128,7 +128,7 @@ const MAP = {
   DS_LIBRARY_KEY: d.library_key || '(set after first publish)',
   DS_VERSION: d.version, DS_PUBLISHED_DATE: d.published_date || 'unpublished',
   FONTS: d.fonts, TOKEN_PREFIXES: (d.token_prefixes || []).join(', '),
-  CONSUMER_FIGMA_KEY: c.figma_file_key, CONSUMER_FILE_NAME: c.file_name,
+  CONSUMER_FIGMA_KEY: c.figma_file_key || '(created during setup)', CONSUMER_FILE_NAME: c.file_name,
   FRAME_W: c.frame.width, FRAME_H: c.frame.height, PAGE_BG_TOKEN: c.frame.bg_token,
   PROTOTYPE_NAME: pr.name, PROTOTYPE_DESC: pr.description,
   DS_REPO: r.ds_context, STUDIO_REPO: r.studio_context, ENGINEERING_REPO: r.engineering_context || '',
@@ -159,7 +159,10 @@ const missing = [];
 for (const k of ['name','system_name','system_full_name','brand_shorthand','domain','github_owner']) if (!p[k]) missing.push(`project.${k}`);
 if (ONLY.includes('ds') && !r.ds_context) missing.push('repos.ds_context');
 if (ONLY.includes('studio') && !r.studio_context) missing.push('repos.studio_context');
-if (ONLY.includes('studio') && !c.figma_file_key) missing.push('consumer.figma_file_key');
+// In `build` mode the Figma files do not exist yet — that is the whole point of the mode,
+// and it already relaxes the DS keys below. The consumer file is no more real at that point,
+// so requiring it here made a genuinely new project unrenderable.
+if (ONLY.includes('studio') && cfg.ds_mode !== 'build' && !c.figma_file_key) missing.push('consumer.figma_file_key');
 if (ONLY.includes('ds') && cfg.ds_mode === 'consume') {
   if (!d.library_key) missing.push('design_system.library_key (required in consume mode)');
   if (!d.figma_source_key) missing.push('design_system.figma_source_key (required in consume mode)');
